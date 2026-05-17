@@ -13,7 +13,7 @@ export function InkDrawer({ title, open, onClose, children }: InkDrawerProps) {
   return (
     <div className="fixed inset-0 z-50 bg-ink/25 backdrop-blur-sm" onClick={onClose}>
       <section
-        className="sheet-slide fixed inset-x-0 bottom-0 mx-auto max-h-[76dvh] max-w-md overflow-y-auto rounded-t-[32px] border border-white/70 bg-paper p-5 shadow-ink"
+        className="sheet-slide fixed inset-x-0 bottom-0 mx-auto max-h-[76dvh] max-w-md overflow-y-auto rounded-t-drawer border border-white/70 bg-paper p-5 shadow-floating"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-ink/15" />

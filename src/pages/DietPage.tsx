@@ -1,8 +1,9 @@
-import { ChevronRight, Droplets, Plus, Shuffle, Store, Utensils } from 'lucide-react';
+import { ChevronRight, Plus, Shuffle, Store, Utensils } from 'lucide-react';
 import { useState } from 'react';
 import { InkButton } from '../components/Ink/InkButton';
 import { InkCard } from '../components/Ink/InkCard';
 import { InkDrawer } from '../components/Ink/InkDrawer';
+import { InkPage } from '../components/Ink/InkPage';
 import { MealCard } from '../components/Meals/MealCard';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import {
@@ -13,7 +14,7 @@ import {
   sanitizeDietText,
   updateMeal,
 } from '../rules/mealRules';
-import { calculateWaterGoal, createWaterLog, getWaterSummary } from '../rules/waterRules';
+import { calculateWaterGoal } from '../rules/waterRules';
 import type { AppPage, AppState, FrequentStore, MealItem, MealPlan, MealType, WaterLog } from '../types';
 import { getDayKey, toDateKey } from '../utils/date';
 
@@ -31,7 +32,6 @@ export function DietPage({ state, onPageChange, onAddWater, onMealPlanChange, on
   const today = toDateKey();
   const plan = defaultTrainingPlan[getDayKey(today)];
   const waterGoal = calculateWaterGoal(state.profile, plan, today);
-  const waterSummary = getWaterSummary(today, waterGoal, state.waterLogs[today] ?? []);
   const mealPlan = state.mealPlans[today] ?? createDefaultMealPlan(today, state.profile, waterGoal.totalGoalMl);
   const [editingType, setEditingType] = useState<MealType | null>(null);
   const [storeDrawer, setStoreDrawer] = useState(false);
@@ -82,17 +82,16 @@ export function DietPage({ state, onPageChange, onAddWater, onMealPlanChange, on
   const completedMeals = mealTypes.filter((type) => mealPlan[type]?.completed).length;
 
   return (
-    <div className="page-slide space-y-4">
-      <header className="pt-2">
-        <div className="mb-4 flex items-center justify-between">
+    <InkPage
+      title="今日膳食"
+      subtitle={`${state.profile.mealsPerDay} 餐外卖 · 不吃鸡蛋和海鲜 · 每餐 ${state.profile.mealBudget} 元以内`}
+      eyebrow={
+        <>
           <span className="seal-dot">膳</span>
-          <p className="text-sm text-muted">{state.profile.locationArea}</p>
-        </div>
-        <h1 className="ink-title text-3xl font-semibold">今日膳食</h1>
-        <p className="mt-2 text-sm leading-6 text-muted">
-          {state.profile.mealsPerDay} 餐制 · 不吃鸡蛋和海鲜 · 每餐 {state.profile.mealBudget} 元以内
-        </p>
-      </header>
+          <span>{state.profile.locationArea}</span>
+        </>
+      }
+    >
 
       <InkCard title="今日安排" subtitle={`${completedMeals} / ${mealTypes.length} 项已完成`}>
         <div className="grid gap-3">
@@ -106,21 +105,9 @@ export function DietPage({ state, onPageChange, onAddWater, onMealPlanChange, on
               onEdit={() => startEdit(type)}
               onAddFrequent={() => addToFrequent(type)}
               onDelete={() => deleteMeal(type)}
+              compact
             />
           ))}
-        </div>
-      </InkCard>
-
-      <InkCard title="今日饮水" subtitle={`${waterSummary.consumedMl} / ${waterSummary.goalMl}ml`}>
-        <div className="h-2 overflow-hidden rounded-full bg-inkwash">
-          <div className="h-full rounded-full bg-mountain" style={{ width: `${waterSummary.completionRate}%` }} />
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <InkButton variant="ghost" onClick={() => onAddWater(createWaterLog(300, 'quick'))} className="flex items-center justify-center gap-2">
-            <Droplets size={17} />
-            +300ml
-          </InkButton>
-          <InkButton variant="secondary" onClick={() => onPageChange('water')}>饮水详情</InkButton>
         </div>
       </InkCard>
 
@@ -216,6 +203,6 @@ export function DietPage({ state, onPageChange, onAddWater, onMealPlanChange, on
           </InkButton>
         </div>
       </InkDrawer>
-    </div>
+    </InkPage>
   );
 }

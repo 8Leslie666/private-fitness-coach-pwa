@@ -1,12 +1,13 @@
-import { ChevronRight, Clock3, Droplets, Dumbbell, NotebookPen, ShieldAlert, Utensils } from 'lucide-react';
+import { ChevronRight, Clock3, Dumbbell, NotebookPen, ShieldAlert, Utensils } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { InkButton } from '../components/Ink/InkButton';
 import { InkCard } from '../components/Ink/InkCard';
 import { InkDrawer } from '../components/Ink/InkDrawer';
+import { StatusBadge } from '../components/Ink/StatusBadge';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import { generateCoachAdvice } from '../rules/coachRules';
 import { createDefaultMealPlan } from '../rules/mealRules';
-import { calculateWaterGoal, createWaterLog, getWaterSummary } from '../rules/waterRules';
+import { calculateWaterGoal } from '../rules/waterRules';
 import type { AppPage, AppState, DailyLog, MealPlan, WaterLog } from '../types';
 import { dateKeysBetween, formatChineseDate, getDayKey, getPhaseLabel, getWeekRange, toDateKey } from '../utils/date';
 
@@ -51,9 +52,7 @@ export function TodayPage({ state, onPageChange, onAddWater, onSaveLog, onMealPl
   const plan = defaultTrainingPlan[getDayKey(today)];
   const todayLog = state.dailyLogs[today] ?? { date: today };
   const advice = generateCoachAdvice(state, today);
-  const waterLogs = state.waterLogs[today] ?? [];
   const waterGoal = calculateWaterGoal(state.profile, plan, today);
-  const waterSummary = getWaterSummary(today, waterGoal, waterLogs);
   const mealPlan = state.mealPlans[today] ?? createDefaultMealPlan(today, state.profile, waterGoal.totalGoalMl);
   const statusLabel = getWorkoutStatusLabel(state, today);
   const progress = useMemo(() => weekCompletionRate(state, today), [state, today]);
@@ -73,21 +72,28 @@ export function TodayPage({ state, onPageChange, onAddWater, onSaveLog, onMealPl
 
   return (
     <div className="page-slide space-y-4">
-      <header className="ink-card relative min-h-[260px] rounded-[34px] p-5">
+      <header className="ink-card relative min-h-[300px] rounded-pageCard p-5">
         <div className="relative z-10 flex h-full flex-col justify-between">
           <div>
             <div className="mb-5 flex items-center justify-between">
               <span className="seal-dot">修</span>
-              <p className="text-sm text-muted">{formatChineseDate(today)}</p>
+              <p className="text-sm text-ink500">{formatChineseDate(today)}</p>
             </div>
-            <p className="text-sm text-muted">早安，{state.profile.nickname}</p>
-            <h1 className="ink-title mt-2 text-4xl font-semibold text-ink">今日修行</h1>
-            <p className="mt-3 text-sm leading-6 text-muted">今日之功，不在疾，在恒。</p>
+            <p className="text-sm text-ink500">早安，{state.profile.nickname}</p>
+            <h1 className="ink-title mt-2 text-[38px] font-semibold leading-tight text-ink900">今日修行</h1>
+            <p className="mt-3 text-sm leading-6 text-ink500">今日之功，不在疾，在恒。</p>
           </div>
-          <div className="mt-5 rounded-[26px] bg-white/72 p-4 shadow-soft">
-            <p className="text-xs font-semibold text-mountain">{getPhaseLabel(state.createdAt, today)}</p>
-            <h2 className="mt-2 text-xl font-semibold text-ink">今日训练重点：{plan.dayType}</h2>
-            <p className="mt-1 text-sm text-muted">核心数据：{formatCoreExercise(plan)}</p>
+          <div className="mt-6 rounded-card bg-white/62 p-4 shadow-soft">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-jade">{getPhaseLabel(state.createdAt, today)}</p>
+              <StatusBadge tone={statusLabel === '已完成' ? 'good' : statusLabel === '进行中' ? 'warn' : 'neutral'}>{statusLabel}</StatusBadge>
+            </div>
+            <h2 className="mt-3 text-xl font-semibold leading-7 text-ink900">{plan.dayType}</h2>
+            <p className="mt-1 text-sm text-ink500">{formatCoreExercise(plan)} · 预计 {plan.estimatedMinutes} 分钟</p>
+            <InkButton onClick={() => onPageChange('workout')} className="mt-4 flex w-full items-center justify-center gap-2 text-base">
+              进入训练
+              <ChevronRight size={18} />
+            </InkButton>
           </div>
         </div>
       </header>
@@ -95,18 +101,32 @@ export function TodayPage({ state, onPageChange, onAddWater, onSaveLog, onMealPl
       <InkCard
         title="今日训练"
         subtitle={`${plan.location} · 预计 ${plan.estimatedMinutes} 分钟 · ${statusLabel}`}
-        action={<Dumbbell size={20} className="text-mountain" />}
+        action={<Dumbbell size={20} className="text-jade" />}
       >
-        <p className="text-sm leading-6 text-muted">{advice.coachNote || '完成计划，不追极限。'}</p>
-        <InkButton onClick={() => onPageChange('workout')} className="mt-4 flex w-full items-center justify-center gap-2 text-base">
-          进入训练
-          <ChevronRight size={18} />
-        </InkButton>
+        <p className="text-sm leading-6 text-ink500">{advice.coachNote || '完成计划，不追极限。'}</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <InkButton variant="secondary" onClick={() => setDrawer('body')} className="flex items-center justify-center gap-2">
+            <ShieldAlert size={16} />
+            今天很累
+          </InkButton>
+          <InkButton variant="secondary" onClick={() => saveLog({ willTrain: false, bodyStatus: '没空' })} className="flex items-center justify-center gap-2">
+            <NotebookPen size={16} />
+            今天没空
+          </InkButton>
+          <InkButton variant="secondary" onClick={() => setDrawer('time')} className="flex items-center justify-center gap-2">
+            <Clock3 size={16} />
+            改时间
+          </InkButton>
+          <InkButton variant="secondary" onClick={generateMeal} className="flex items-center justify-center gap-2">
+            <Utensils size={16} />
+            生成膳食
+          </InkButton>
+        </div>
       </InkCard>
 
       <div className="grid grid-cols-2 gap-3">
         <InkCard title="今日膳食" subtitle={mealPlan.completed ? '已完成' : `${state.profile.mealsPerDay} 餐制 · ${state.profile.mealBudget} 元内`}>
-          <p className="min-h-[44px] text-sm leading-5 text-muted">
+          <p className="min-h-[44px] text-sm leading-5 text-ink500">
             {mealPlan.firstMeal?.name ?? '第一餐未安排'}；{mealPlan.secondMeal?.name ?? '第二餐未安排'}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -135,7 +155,7 @@ export function TodayPage({ state, onPageChange, onAddWater, onSaveLog, onMealPl
         </InkCard>
 
         <InkCard title="今日风险" subtitle={advice.riskFlags[0]?.title ?? '暂无高风险'}>
-          <p className="min-h-[44px] text-sm leading-5 text-muted">
+          <p className="min-h-[44px] text-sm leading-5 text-ink500">
             {advice.riskFlags[0]?.message ?? '继续记录睡眠、饮食和训练，不做额外加码。'}
           </p>
           <InkButton variant="ghost" onClick={() => setDrawer('body')} className="mt-3 w-full">
@@ -144,55 +164,13 @@ export function TodayPage({ state, onPageChange, onAddWater, onSaveLog, onMealPl
         </InkCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <InkCard title="本周进展" subtitle={`训练完成率 ${progress}%`}>
-          <div className="h-2 overflow-hidden rounded-full bg-inkwash">
-            <div className="h-full rounded-full bg-mountain" style={{ width: `${progress}%` }} />
-          </div>
-          <InkButton variant="ghost" onClick={() => onPageChange('weekly')} className="mt-3 w-full">
-            查看数据
-          </InkButton>
-        </InkCard>
-
-        <InkCard title="今日饮水" subtitle={`${waterSummary.consumedMl} / ${waterSummary.goalMl}ml`}>
-          <div className="h-2 overflow-hidden rounded-full bg-inkwash">
-            <div className="h-full rounded-full bg-mountain" style={{ width: `${waterSummary.completionRate}%` }} />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => onAddWater(createWaterLog(300, 'quick'))}
-              className="flex min-h-[46px] items-center justify-center gap-1 rounded-2xl bg-mountain/10 text-sm font-semibold text-mountain"
-            >
-              <Droplets size={16} />
-              +300
-            </button>
-            <button type="button" onClick={() => onPageChange('water')} className="min-h-[46px] rounded-2xl bg-white/72 text-sm font-semibold text-ink">
-              详情
-            </button>
-          </div>
-        </InkCard>
-      </div>
-
-      <InkCard title="快速操作" subtitle="只改今天，不影响长期计划。">
-        <div className="grid grid-cols-2 gap-2">
-          <InkButton variant="secondary" onClick={() => setDrawer('body')} className="flex items-center justify-center gap-2">
-            <ShieldAlert size={16} />
-            今天很累
-          </InkButton>
-          <InkButton variant="secondary" onClick={() => saveLog({ willTrain: false, bodyStatus: '没空' })} className="flex items-center justify-center gap-2">
-            <NotebookPen size={16} />
-            今天没空
-          </InkButton>
-          <InkButton variant="secondary" onClick={() => setDrawer('time')} className="flex items-center justify-center gap-2">
-            <Clock3 size={16} />
-            修改训练时间
-          </InkButton>
-          <InkButton variant="secondary" onClick={generateMeal} className="flex items-center justify-center gap-2">
-            <Utensils size={16} />
-            生成膳食
-          </InkButton>
+      <InkCard title="本周进展" subtitle={`训练完成率 ${progress}%`}>
+        <div className="h-2 overflow-hidden rounded-full bg-inkwash">
+          <div className="h-full rounded-full bg-jade" style={{ width: `${progress}%` }} />
         </div>
+        <InkButton variant="ghost" onClick={() => onPageChange('weekly')} className="mt-3 w-full">
+          查看数据
+        </InkButton>
       </InkCard>
 
       <InkDrawer title="今日身体状态" open={drawer === 'body'} onClose={() => setDrawer(null)}>

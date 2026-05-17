@@ -4,8 +4,8 @@ import { ReminderSettings } from '../components/ReminderSettings';
 import { WaterReminderCard } from '../components/WaterReminderCard';
 import { WaterTracker } from '../components/WaterTracker';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
-import { eveningSnackOptions, proteinSources, takeawayOptions } from '../data/dietOptions';
-import type { AppPage, AppState, ReminderSettings as ReminderSettingsType, WaterLog, WaterReminderSettings } from '../types';
+import { eveningSnackOptions, takeawayOptions } from '../data/dietOptions';
+import type { AppPage, AppState, ReminderSettings as ReminderSettingsType, UserProfile, WaterLog, WaterReminderSettings } from '../types';
 import { dateKeysBetween, getDayKey, getWeekRange, toDateKey } from '../utils/date';
 import { WeeklyReportPage } from './WeeklyReportPage';
 
@@ -17,6 +17,7 @@ interface SecondaryPageProps {
   onUndoWater: (date: string) => void;
   onWaterSettingsChange: (settings: WaterReminderSettings) => void;
   onReminderChange: (settings: ReminderSettingsType) => void;
+  onProfileChange: (profile: UserProfile) => void;
   onExport: () => void;
   onReset: () => void;
 }
@@ -117,10 +118,23 @@ export function McDonaldsPage(props: SecondaryPageProps) {
 }
 
 export function ProfilePage(props: SecondaryPageProps) {
+  const profile = props.state.profile;
+  const patch = (changes: Partial<UserProfile>) => props.onProfileChange({ ...profile, ...changes });
   return (
-    <Shell title="个人资料" subtitle="基础信息" onBack={props.onBack}>
-      <Card title="当前资料">
-        <SimpleList items={[`身高：${props.state.profile.height}cm`, `体重：${props.state.profile.currentWeight}kg`, `目标：${props.state.profile.goal}`, `训练经历：${props.state.profile.trainingExperience}`]} />
+    <Shell title="个人资料" subtitle="保存到本地浏览器" onBack={props.onBack}>
+      <Card title="基础资料" subtitle="修改后会联动首页、饮水和膳食建议。">
+        <div className="grid gap-3">
+          <label className="text-sm font-semibold text-ink">昵称<input value={profile.nickname} onChange={(event) => patch({ nickname: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-sm font-semibold text-ink">身高<input type="number" value={profile.height} onChange={(event) => patch({ height: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+            <label className="text-sm font-semibold text-ink">当前体重<input type="number" value={profile.currentWeight} onChange={(event) => patch({ currentWeight: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-sm font-semibold text-ink">目标体重<input type="number" value={profile.targetWeight} onChange={(event) => patch({ targetWeight: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+            <label className="text-sm font-semibold text-ink">当前阶段<input value={profile.phase} onChange={(event) => patch({ phase: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          </div>
+          <label className="text-sm font-semibold text-ink">训练目标<input value={profile.trainingGoal} onChange={(event) => patch({ trainingGoal: event.target.value, goal: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+        </div>
       </Card>
     </Shell>
   );
@@ -164,20 +178,39 @@ export function ExerciseLibraryPage(props: SecondaryPageProps) {
 }
 
 export function TrainingSettingsPage(props: SecondaryPageProps) {
+  const profile = props.state.profile;
+  const patch = (changes: Partial<UserProfile>) => props.onProfileChange({ ...profile, ...changes });
   return (
     <Shell title="训练设置" subtitle="短设置页" onBack={props.onBack}>
-      <Card title="默认策略">
-        <SimpleList items={['每周 4 天训练。', '工作日 16:00 后训练。', '周末 14:00 后训练。', '睡眠不足 6 小时自动降强度。']} />
+      <Card title="训练偏好">
+        <div className="grid gap-3">
+          <label className="text-sm font-semibold text-ink">每周训练天数<input type="number" value={profile.weeklyTrainingDays} onChange={(event) => patch({ weeklyTrainingDays: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-sm font-semibold text-ink">工作日<input value={profile.weekdayTrainingAfter} onChange={(event) => patch({ weekdayTrainingAfter: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+            <label className="text-sm font-semibold text-ink">周末<input value={profile.weekendTrainingAfter} onChange={(event) => patch({ weekendTrainingAfter: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          </div>
+          <label className="text-sm font-semibold text-ink">单次时长<input type="number" value={profile.sessionTimeLimit} onChange={(event) => patch({ sessionTimeLimit: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <label className="text-sm font-semibold text-ink">三大项优先级<input value={profile.strengthPriority} onChange={(event) => patch({ strengthPriority: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+        </div>
       </Card>
     </Shell>
   );
 }
 
 export function DietRestrictionsPage(props: SecondaryPageProps) {
+  const profile = props.state.profile;
+  const patch = (changes: Partial<UserProfile>) => props.onProfileChange({ ...profile, ...changes });
   return (
-    <Shell title="饮食禁忌" subtitle="生成建议会避开" onBack={props.onBack}>
-      <Card title="当前限制">
-        <SimpleList items={[...props.state.profile.dietRestrictions, '内脏不太爱吃', ...proteinSources.map((item) => `可接受蛋白：${item}`).slice(0, 4)]} />
+    <Shell title="膳食偏好" subtitle="生成建议会避开禁忌" onBack={props.onBack}>
+      <Card title="当前偏好">
+        <div className="grid gap-3">
+          <div className="rounded-2xl bg-amber-50 p-3 text-sm leading-6 text-amber-800">固定禁忌：不推荐鸡蛋、海鲜；内脏默认不推荐。</div>
+          <label className="text-sm font-semibold text-ink">每天几餐<input type="number" value={profile.mealsPerDay} onChange={(event) => patch({ mealsPerDay: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <label className="text-sm font-semibold text-ink">每餐预算<input type="number" value={profile.mealBudget} onChange={(event) => patch({ mealBudget: Number(event.target.value) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <label className="text-sm font-semibold text-ink">外卖平台<input value={profile.deliveryPlatforms.join('、')} onChange={(event) => patch({ deliveryPlatforms: event.target.value.split(/[、,，]/).filter(Boolean) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <label className="text-sm font-semibold text-ink">常用地区<input value={profile.locationArea} onChange={(event) => patch({ locationArea: event.target.value })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+          <label className="text-sm font-semibold text-ink">可接受食物<input value={profile.acceptedFoods.join('、')} onChange={(event) => patch({ acceptedFoods: event.target.value.split(/[、,，]/).filter(Boolean) })} className="mt-2 h-12 w-full rounded-2xl border border-line bg-white/80 px-3 outline-none" /></label>
+        </div>
       </Card>
     </Shell>
   );

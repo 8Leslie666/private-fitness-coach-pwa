@@ -26,7 +26,7 @@ export function BottomNav({ page, onChange }: BottomNavProps) {
   const activePage = normalizedActivePage(page);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/80 bg-white/90 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 shadow-[0_-18px_45px_rgba(24,35,73,0.08)] backdrop-blur-xl">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/70 bg-paper/88 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 shadow-[0_-10px_28px_rgba(26,26,26,0.07)] backdrop-blur-xl">
       <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
         {items.map(({ page: itemPage, label, Icon }) => {
           const active = activePage === itemPage;
@@ -36,7 +36,7 @@ export function BottomNav({ page, onChange }: BottomNavProps) {
               type="button"
               onClick={() => onChange(itemPage)}
               className={`flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium transition active:scale-[0.98] ${
-                active ? 'bg-mountain/10 text-mountain shadow-soft' : 'text-muted active:bg-surface'
+                active ? 'bg-jade/10 text-jade shadow-soft' : 'text-ink500 active:bg-white/50'
               }`}
               aria-current={active ? 'page' : undefined}
             >

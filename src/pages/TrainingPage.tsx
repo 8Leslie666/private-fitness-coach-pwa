@@ -1,5 +1,8 @@
 import { BookOpen, ChevronRight, Dumbbell, History, Settings } from 'lucide-react';
 import { InkCard } from '../components/Ink/InkCard';
+import { InkPage } from '../components/Ink/InkPage';
+import { InkTimeline } from '../components/Ink/InkTimeline';
+import { StatusBadge } from '../components/Ink/StatusBadge';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import type { AppPage, AppState, TrainingSession, WaterLog } from '../types';
 import { getDayKey, getPhaseLabel, toDateKey } from '../utils/date';
@@ -26,16 +29,16 @@ export function TrainingPage({ state, onPageChange }: TrainingPageProps) {
   const main = plan.exercises[0];
 
   return (
-    <div className="page-slide space-y-4">
-      <header className="pt-2">
-        <span className="seal-dot">练</span>
-        <p className="text-sm text-muted">{getPhaseLabel(state.createdAt, today)}</p>
-        <h1 className="ink-title mt-2 text-3xl font-semibold">行练</h1>
-      </header>
+    <InkPage
+      title="行练"
+      subtitle="从起势到收势，一屏一件事。训练中只看当前动作、重量、次数和计时。"
+      eyebrow={<><span className="seal-dot">练</span><span>{getPhaseLabel(state.createdAt, today)}</span></>}
+    >
 
       <InkCard
         title="今日行练"
-        subtitle={`${plan.weekdayName} · ${plan.estimatedMinutes} 分钟 · ${status.label}`}
+        subtitle={`${plan.weekdayName} · ${plan.estimatedMinutes} 分钟`}
+        action={<StatusBadge tone={status.label === '已完成' ? 'good' : status.label === '进行中' ? 'warn' : 'neutral'}>{status.label}</StatusBadge>}
       >
         <div className="space-y-4">
           <div className="rounded-[26px] bg-white/68 p-4 shadow-soft">
@@ -54,6 +57,19 @@ export function TrainingPage({ state, onPageChange }: TrainingPageProps) {
             <ChevronRight size={18} />
           </button>
         </div>
+      </InkCard>
+
+      <InkCard title="行练流程" subtitle="进入训练后隐藏底部导航。">
+        <InkTimeline
+          activeIndex={status.label === '未开始' ? 0 : status.label === '进行中' ? 2 : 4}
+          items={[
+            { title: '起势', detail: '确认身体状态和装备。', minutes: '1 分钟' },
+            { title: '行练次第', detail: '查看今日流程。', minutes: '1 分钟' },
+            { title: '正式行练', detail: '当前动作、重量、次数、组数。', minutes: '主流程' },
+            { title: '调息', detail: '组间休息倒计时。', minutes: '组间' },
+            { title: '收势', detail: '保存记录和复盘。', minutes: '3 分钟' },
+          ]}
+        />
       </InkCard>
 
       <div className="grid grid-cols-2 gap-3">
@@ -77,6 +93,6 @@ export function TrainingPage({ state, onPageChange }: TrainingPageProps) {
           );
         })}
       </div>
-    </div>
+    </InkPage>
   );
 }

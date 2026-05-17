@@ -41,6 +41,22 @@ body {
     );
 }
 
+:root {
+  --paper: #f8f5f0;
+  --rice: #faf0e6;
+  --ivory: #fffff0;
+  --ink-900: #1a1a1a;
+  --ink-700: #333333;
+  --ink-500: #666666;
+  --ink-300: #999999;
+  --jade: #2e8b57;
+  --seal: #c41e3a;
+  --gold: #d4af37;
+  --train-bg: #131c28;
+  --soft-shadow: 0 8px 24px rgba(26, 26, 26, 0.06);
+  --floating-shadow: 0 16px 42px rgba(26, 26, 26, 0.1);
+}
+
 button,
 input,
 select,
@@ -102,8 +118,8 @@ textarea {
   pointer-events: none;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(248, 245, 240, 0.35), rgba(255, 255, 240, 0.2)),
-    repeating-linear-gradient(92deg, rgba(26, 26, 26, 0.018) 0, rgba(26, 26, 26, 0.018) 1px, transparent 1px, transparent 9px);
+    linear-gradient(180deg, rgba(248, 245, 240, 0.28), rgba(255, 255, 240, 0.18)),
+    repeating-linear-gradient(92deg, rgba(26, 26, 26, 0.012) 0, rgba(26, 26, 26, 0.012) 1px, transparent 1px, transparent 10px);
 }
 
 .ink-mountain {
@@ -112,7 +128,7 @@ textarea {
   width: 115vw;
   border-radius: 52% 48% 0 0;
   filter: blur(0.3px);
-  opacity: 0.5;
+  opacity: 0.32;
 }
 
 .ink-mountain-a {
@@ -156,12 +172,12 @@ textarea {
 .ink-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.72);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.58)),
-    repeating-linear-gradient(110deg, rgba(26, 26, 26, 0.026) 0, rgba(26, 26, 26, 0.026) 1px, transparent 1px, transparent 18px);
-  box-shadow: 0 18px 45px rgba(26, 26, 26, 0.08);
-  backdrop-filter: blur(18px);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.50)),
+    repeating-linear-gradient(110deg, rgba(26, 26, 26, 0.014) 0, rgba(26, 26, 26, 0.014) 1px, transparent 1px, transparent 18px);
+  box-shadow: var(--soft-shadow);
+  backdrop-filter: blur(16px);
 }
 
 .ink-card::after {
@@ -171,7 +187,7 @@ textarea {
   top: -26px;
   width: 96px;
   height: 96px;
-  border: 1px solid rgba(46, 139, 87, 0.10);
+  border: 1px solid rgba(46, 139, 87, 0.07);
   border-radius: 55% 45% 50% 50%;
   pointer-events: none;
 }
@@ -195,9 +211,9 @@ textarea {
 
 .training-focus {
   background:
-    radial-gradient(circle at 50% 20%, rgba(46, 139, 87, 0.16), transparent 34%),
-    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 22px),
-    linear-gradient(180deg, #17202d, #111827);
+    radial-gradient(circle at 50% 10%, rgba(125, 211, 199, 0.14), transparent 32%),
+    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.024) 0, rgba(255, 255, 255, 0.024) 1px, transparent 1px, transparent 24px),
+    linear-gradient(180deg, #162131, #111827 62%, #0f172a);
 }
 
 .breath-button {
@@ -340,6 +356,21 @@ textarea {
   padding: 12px;
   box-shadow: 0 24px 55px rgba(46, 139, 87, 0.13);
   transition: background 240ms ease;
+}
+
+.rest-ring-system {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 14px 38px rgba(26, 26, 26, 0.08);
+}
+
+.rest-ring-core {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
 }
 
 .rest-ring-inner {

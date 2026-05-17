@@ -1,7 +1,10 @@
-import { AlertTriangle, ChevronDown, Dumbbell, ListChecks, Pause, Plus, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, Dumbbell, ListChecks, Pause, Plus, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { EditableMetric } from '../components/Ink/EditableMetric';
+import { InkDrawer } from '../components/Ink/InkDrawer';
 import { InkTimeline } from '../components/Ink/InkTimeline';
+import { RestRing } from '../components/Ink/RestRing';
+import { TrainingFocusView } from '../components/Ink/TrainingFocusView';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import {
   applySetRpe,
@@ -87,23 +90,7 @@ function exerciseTips(name: string): { tips: string[]; mistakes: string[] } {
 }
 
 function BottomSheet({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-ink/35 backdrop-blur-sm" onClick={onClose}>
-      <section
-        className="sheet-slide fixed inset-x-0 bottom-0 mx-auto max-h-[74dvh] max-w-md overflow-y-auto rounded-t-[32px] border border-white/70 bg-paper p-5 shadow-ink"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-ink/15" />
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink">{title}</h2>
-          <button type="button" onClick={onClose} className="rounded-full bg-white/80 p-2 text-ink shadow-soft">
-            <ChevronDown size={18} />
-          </button>
-        </div>
-        {children}
-      </section>
-    </div>
-  );
+  return <InkDrawer title={title} open onClose={onClose}>{children}</InkDrawer>;
 }
 
 function createSet(index: number, weight: number | null, reps: string): WorkoutSet {
@@ -313,23 +300,25 @@ export function WorkoutPage({ state, onWorkoutChange, onSaveTraining, onExit }: 
 
   function renderActiveSet() {
     return (
-      <div className="flex h-full flex-col justify-between text-white">
-        <div>
-          <p className="text-sm font-semibold text-white/65">正式行练</p>
-          <h2 className="mt-2 truncate text-5xl font-bold tracking-normal text-white">{currentExercise.name}</h2>
-          <p className="mt-2 text-sm text-white/55">{currentExercise.cue}</p>
-          <div className="mt-4 grid grid-cols-3 gap-2">
+      <TrainingFocusView
+        label="正式行练"
+        title={currentExercise.name}
+        cue={currentExercise.cue}
+        metrics={
+          <div className="grid grid-cols-3 gap-2">
             <EditableMetric dark label={stageLabel(currentExercise.category)} value={`${currentSet.setIndex + 1}/${currentExercise.plannedSets}`} onClick={() => setSheet('sets')} hint="点此改组数" />
             <EditableMetric dark label="重量" value={currentSet.plannedWeight ? `${currentSet.plannedWeight}kg` : '自重'} onClick={() => setSheet('weight')} hint="点此改重量" />
             <EditableMetric dark label="次数" value={`${currentSet.plannedReps}`} onClick={() => setSheet('reps')} hint="点此改次数" />
           </div>
-          <div className="mt-5 rounded-[32px] bg-white/10 p-5 text-center ring-1 ring-white/10">
+        }
+        timer={
+          <button type="button" onClick={() => setSheet('rest')} className="w-full rounded-pageCard bg-trainCard p-5 text-center ring-1 ring-white/10">
             <p className="text-sm text-white/60">{isSetRunning ? '当前组进行中' : '等待开始本组'}</p>
             <p className="mt-2 text-7xl font-bold tracking-normal text-white">{formatTimer(isSetRunning ? activeElapsed : 0)}</p>
             <p className="mt-2 text-sm text-white/55">目标 RPE：{currentExercise.targetRpe} · 休息 {currentExercise.restSeconds} 秒</p>
-          </div>
-        </div>
-        <div className="grid gap-2">
+          </button>
+        }
+        primaryAction={
           <button
             type="button"
             onClick={() => update(isSetRunning ? completeCurrentSet(session) : startCurrentSet(session))}
@@ -337,6 +326,8 @@ export function WorkoutPage({ state, onWorkoutChange, onSaveTraining, onExit }: 
           >
             {isSetRunning ? '完成本组' : '开始本组'}
           </button>
+        }
+        secondaryActions={
           <div className="grid grid-cols-3 gap-2">
             <button type="button" onClick={() => setSheet('cue')} className="min-h-[50px] rounded-2xl bg-white/10 text-sm font-semibold text-white">
               动作提示
@@ -348,8 +339,8 @@ export function WorkoutPage({ state, onWorkoutChange, onSaveTraining, onExit }: 
               状态调整
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
     );
   }
 
@@ -372,16 +363,18 @@ export function WorkoutPage({ state, onWorkoutChange, onSaveTraining, onExit }: 
 
   function renderRest() {
     const total = session.timer.plannedSeconds + session.timer.extendedSeconds;
-    const progress = total ? Math.min(((total - restRemaining) / total) * 100, 100) : 0;
     return (
       <div className="flex h-full flex-col justify-between text-center text-white">
         <div>
           <p className="text-sm font-semibold text-white/65">调息</p>
           <p className="mt-2 text-sm text-white/55">第 {currentSet.setIndex + 1} 组完成</p>
-          <div className="rest-ring rest-glow mx-auto mt-5" style={{ background: `conic-gradient(#2E8B57 ${progress * 3.6}deg, rgba(255,255,255,0.12) 0deg)` }}>
-            <div className="grid h-full w-full place-items-center rounded-full bg-white/10">
-              <p className="text-6xl font-bold text-white">{formatTimer(restRemaining)}</p>
-            </div>
+          <div className="mt-5">
+            <RestRing
+              dark
+              remainingSeconds={restRemaining}
+              totalSeconds={total}
+              formattedTime={formatTimer(restRemaining)}
+            />
           </div>
           <button type="button" onClick={() => setSheet('rest')} className="mt-5 rounded-[22px] bg-white/10 p-3 text-sm leading-6 text-white/75">
             下一组：{currentExercise.name} {Math.min(currentSet.setIndex + 2, currentExercise.plannedSets)} / {currentExercise.plannedSets}<br />
