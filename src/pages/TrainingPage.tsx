@@ -1,14 +1,18 @@
-import { Check, Copy, Save } from 'lucide-react';
+import { Check, Copy, Droplets, Save } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Card } from '../components/Cards/Card';
+import { RitualCard } from '../components/RitualCard';
+import { WaterTracker } from '../components/WaterTracker';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import { getAdjustedTodayWeight, planToRecord } from '../rules/trainingRules';
-import type { AppState, ExerciseRecord, TrainingSession } from '../types';
+import type { AppState, ExerciseRecord, TrainingSession, WaterLog } from '../types';
 import { formatChineseDate, getDayKey, toDateKey } from '../utils/date';
 
 interface TrainingPageProps {
   state: AppState;
   onSave: (session: TrainingSession) => void;
+  onAddWater: (log: WaterLog) => void;
+  onUndoWater: (date: string) => void;
 }
 
 function numberFromInput(value: string): number | undefined {
@@ -17,7 +21,7 @@ function numberFromInput(value: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-export function TrainingPage({ state, onSave }: TrainingPageProps) {
+export function TrainingPage({ state, onSave, onAddWater, onUndoWater }: TrainingPageProps) {
   const today = toDateKey();
   const plan = defaultTrainingPlan[getDayKey(today)];
   const saved = state.trainingSessions[today];
@@ -39,6 +43,14 @@ export function TrainingPage({ state, onSave }: TrainingPageProps) {
   }, [saved, plan, today, todayLog]);
   const [session, setSession] = useState<TrainingSession>(initial);
   const [savedNow, setSavedNow] = useState(false);
+  const [trainingStarted, setTrainingStarted] = useState(Boolean(saved));
+  const [justStarted, setJustStarted] = useState(false);
+  const waterLogs = state.waterLogs[today] ?? [];
+  const completedCount = session.exercises.filter((exercise) => exercise.completed).length;
+  const completionRate = Math.round((completedCount / session.exercises.length) * 100);
+  const painCount = session.exercises.filter((exercise) => exercise.pain).length;
+  const highRpeCount = session.exercises.filter((exercise) => (exercise.rpe ?? 0) >= 9).length;
+  const completionScore = Math.max(0, Math.min(100, completionRate - painCount * 8 - highRpeCount * 5));
 
   function updateExercise(index: number, patch: Partial<ExerciseRecord>) {
     setSession((current) => ({
@@ -74,6 +86,12 @@ export function TrainingPage({ state, onSave }: TrainingPageProps) {
     window.setTimeout(() => setSavedNow(false), 1800);
   }
 
+  function startTraining() {
+    setTrainingStarted(true);
+    setJustStarted(true);
+    window.setTimeout(() => setJustStarted(false), 1200);
+  }
+
   return (
     <div className="space-y-4">
       <header className="pt-2">
@@ -83,11 +101,69 @@ export function TrainingPage({ state, onSave }: TrainingPageProps) {
         <p className="mt-1 text-sm text-muted">{plan.dayType} · {plan.location}</p>
       </header>
 
+      {!trainingStarted ? (
+        <RitualCard
+          eyebrow="准备开始"
+          title="准备开始今日训练"
+          body="今天只做一件事：完成计划，不追重量。睡眠差或疼痛明显时，主动降强度。"
+          action={
+            <button
+              type="button"
+              onClick={startTraining}
+              className="w-full rounded-2xl bg-ink px-4 py-4 text-base font-semibold text-white shadow-card"
+            >
+              进入训练
+            </button>
+          }
+        >
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-white/80 p-3">
+              <p className="text-xs text-muted">今日训练</p>
+              <p className="mt-1 text-sm font-semibold">{plan.dayType}</p>
+            </div>
+            <div className="rounded-2xl bg-white/80 p-3">
+              <p className="text-xs text-muted">预计时长</p>
+              <p className="mt-1 text-sm font-semibold">{plan.estimatedMinutes} 分钟</p>
+            </div>
+          </div>
+        </RitualCard>
+      ) : (
+        <>
+          {justStarted && (
+            <div className="rounded-[26px] border border-blue-100 bg-blue-50 p-4 text-center text-sm font-semibold text-coach shadow-soft">
+              训练开始。按计划执行，动作稳定优先。
+            </div>
+          )}
+          <Card title="训练陪伴" subtitle="组间休息提示，不打断训练流程。">
+            <div className="rest-glow rounded-[24px] bg-white p-4 text-sm leading-6 text-muted">
+              <div className="mb-2 flex items-center gap-2 font-semibold text-ink">
+                <Droplets size={18} className="text-coach" />
+                小口喝水，保持状态。
+              </div>
+              长训练超过 45 分钟时补一次水。不要每组都灌水，也不要完全不喝。
+            </div>
+          </Card>
+        </>
+      )}
+
       <Card title="今日计划" subtitle={plan.summary}>
         <div className="rounded-2xl bg-surface p-3 text-sm leading-6 text-muted">
           替代方案：{plan.alternative}
         </div>
       </Card>
+
+      {trainingStarted && (
+        <WaterTracker
+          date={today}
+          profile={state.profile}
+          todayPlan={plan}
+          logs={waterLogs}
+          compact
+          showHistory={false}
+          onAdd={onAddWater}
+          onUndo={() => onUndoWater(today)}
+        />
+      )}
 
       <div className="space-y-3">
         {session.exercises.map((exercise, index) => (
@@ -223,6 +299,29 @@ export function TrainingPage({ state, onSave }: TrainingPageProps) {
           placeholder="整体训练感受，可选"
         />
       </Card>
+
+      {completedCount > 0 && (
+        <RitualCard
+          eyebrow="训练完成"
+          title="训练完成"
+          body="今天完成了最重要的事。保存记录后，建议页会根据 RPE、疼痛和睡眠给出明天调整。"
+          score={`${completionScore}`}
+        >
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-white/80 p-3">
+              <p className="text-xs text-muted">完成率</p>
+              <p className="mt-1 text-lg font-semibold">{completionRate}%</p>
+            </div>
+            <div className="rounded-2xl bg-white/80 p-3">
+              <p className="text-xs text-muted">关键表现</p>
+              <p className="mt-1 text-sm font-semibold">{painCount ? '有疼痛，需降强度' : '动作记录有效'}</p>
+            </div>
+          </div>
+          <p className="mt-3 rounded-2xl bg-blue-50 p-3 text-sm leading-6 text-blue-900">
+            训练后建议补水 500ml 左右，配合第二餐恢复。
+          </p>
+        </RitualCard>
+      )}
 
       <button
         type="button"

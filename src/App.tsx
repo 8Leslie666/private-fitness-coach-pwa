@@ -14,7 +14,8 @@ import {
   upsertDailyLog,
   upsertTrainingSession,
 } from './storage/localStorage';
-import type { AppPage, DailyLog, ReminderSettings, TrainingSession } from './types';
+import { addWaterLog, undoLatestWaterLog, updateWaterReminderSettings } from './storage/waterStorage';
+import type { AppPage, DailyLog, ReminderSettings, TrainingSession, WaterLog, WaterReminderSettings } from './types';
 
 const validPages: AppPage[] = ['today', 'checkin', 'training', 'advice', 'weekly'];
 
@@ -45,12 +46,24 @@ export default function App() {
   const currentPage = useMemo(() => {
     switch (page) {
       case 'checkin':
-        return <CheckInPage state={state} onSave={(log: DailyLog) => setState((current) => upsertDailyLog(current, log))} />;
+        return (
+          <CheckInPage
+            state={state}
+            onSave={(log: DailyLog) => setState((current) => upsertDailyLog(current, log))}
+            onAddWater={(log: WaterLog) => setState((current) => addWaterLog(current, log))}
+            onUndoWater={(date) => setState((current) => undoLatestWaterLog(current, date))}
+            onWaterSettingsChange={(settings: WaterReminderSettings) =>
+              setState((current) => updateWaterReminderSettings(current, settings))
+            }
+          />
+        );
       case 'training':
         return (
           <TrainingPage
             state={state}
             onSave={(session: TrainingSession) => setState((current) => upsertTrainingSession(current, session))}
+            onAddWater={(log: WaterLog) => setState((current) => addWaterLog(current, log))}
+            onUndoWater={(date) => setState((current) => undoLatestWaterLog(current, date))}
           />
         );
       case 'advice':
@@ -74,6 +87,11 @@ export default function App() {
             }}
             onReminderChange={(settings: ReminderSettings) =>
               setState((current) => updateReminders(current, settings))
+            }
+            onAddWater={(log: WaterLog) => setState((current) => addWaterLog(current, log))}
+            onUndoWater={(date) => setState((current) => undoLatestWaterLog(current, date))}
+            onWaterSettingsChange={(settings: WaterReminderSettings) =>
+              setState((current) => updateWaterReminderSettings(current, settings))
             }
           />
         );

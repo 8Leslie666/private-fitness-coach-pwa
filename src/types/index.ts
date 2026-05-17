@@ -1,3 +1,7 @@
+import type { WaterLog, WaterReminderSettings } from './water';
+
+export type { WaterGoal, WaterLog, WaterReminderSettings, WaterSummary } from './water';
+
 export type DayKey =
   | 'monday'
   | 'tuesday'
@@ -132,6 +136,8 @@ export interface AppState {
   profile: UserProfile;
   dailyLogs: Record<string, DailyLog>;
   trainingSessions: Record<string, TrainingSession>;
+  waterLogs: Record<string, WaterLog[]>;
+  waterReminderSettings: WaterReminderSettings;
   reminders: ReminderSettings;
   createdAt: string;
   updatedAt: string;

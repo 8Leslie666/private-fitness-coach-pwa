@@ -3,14 +3,20 @@ import { useMemo, useState } from 'react';
 import { Card } from '../components/Cards/Card';
 import { RatingButtons } from '../components/Forms/RatingButtons';
 import { TextField } from '../components/Forms/TextField';
+import { WaterReminderCard } from '../components/WaterReminderCard';
+import { WaterTracker } from '../components/WaterTracker';
+import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import { generateCoachAdvice } from '../rules/coachRules';
-import type { AppState, DailyLog } from '../types';
+import type { AppState, DailyLog, WaterLog, WaterReminderSettings } from '../types';
 import { calculateSleepHours } from '../utils/calculations';
-import { formatChineseDate, toDateKey } from '../utils/date';
+import { formatChineseDate, getDayKey, toDateKey } from '../utils/date';
 
 interface CheckInPageProps {
   state: AppState;
   onSave: (log: DailyLog) => void;
+  onAddWater: (log: WaterLog) => void;
+  onUndoWater: (date: string) => void;
+  onWaterSettingsChange: (settings: WaterReminderSettings) => void;
 }
 
 function toNumber(value: string): number | undefined {
@@ -19,8 +25,10 @@ function toNumber(value: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-export function CheckInPage({ state, onSave }: CheckInPageProps) {
+export function CheckInPage({ state, onSave, onAddWater, onUndoWater, onWaterSettingsChange }: CheckInPageProps) {
   const today = toDateKey();
+  const todayPlan = defaultTrainingPlan[getDayKey(today)];
+  const waterLogs = state.waterLogs[today] ?? [];
   const saved = state.dailyLogs[today];
   const [form, setForm] = useState<DailyLog>({
     date: today,
@@ -110,6 +118,25 @@ export function CheckInPage({ state, onSave }: CheckInPageProps) {
           </label>
         </div>
       </Card>
+
+      <WaterTracker
+        date={today}
+        profile={state.profile}
+        todayPlan={todayPlan}
+        logs={waterLogs}
+        onAdd={onAddWater}
+        onUndo={() => onUndoWater(today)}
+      />
+
+      <WaterReminderCard
+        date={today}
+        profile={state.profile}
+        todayPlan={todayPlan}
+        logs={waterLogs}
+        settings={state.waterReminderSettings}
+        onSettingsChange={onWaterSettingsChange}
+        onAdd={onAddWater}
+      />
 
       <Card title="保存后反馈">
         <p className="text-sm leading-6 text-muted">{advice.coachNote}</p>

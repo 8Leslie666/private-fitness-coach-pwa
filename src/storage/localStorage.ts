@@ -1,6 +1,7 @@
 import { defaultUserProfile } from '../data/defaultUserProfile';
 import type { AppState, DailyLog, ReminderSettings, TrainingSession } from '../types';
 import { toDateKey } from '../utils/date';
+import { defaultWaterReminderSettings } from './waterStorage';
 
 const STORAGE_KEY = 'private-fitness-coach-state-v1';
 
@@ -18,6 +19,8 @@ export function createInitialState(): AppState {
     profile: defaultUserProfile,
     dailyLogs: {},
     trainingSessions: {},
+    waterLogs: {},
+    waterReminderSettings: defaultWaterReminderSettings,
     reminders: defaultReminders,
     createdAt: now,
     updatedAt: now,
@@ -41,6 +44,12 @@ export function loadAppState(): AppState {
         ...defaultReminders,
         ...parsed.reminders,
         lastNotified: parsed.reminders?.lastNotified ?? {},
+      },
+      waterLogs: parsed.waterLogs ?? {},
+      waterReminderSettings: {
+        ...defaultWaterReminderSettings,
+        ...parsed.waterReminderSettings,
+        lastNotified: parsed.waterReminderSettings?.lastNotified ?? {},
       },
     };
   } catch {

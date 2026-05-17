@@ -2,11 +2,14 @@ import { AlertTriangle, CheckCircle2, ChevronRight, Dumbbell, Footprints, Moon, 
 import { PwaInstallGuide } from '../components/PwaInstallGuide';
 import { ReminderSettings } from '../components/ReminderSettings';
 import { UseGuide } from '../components/UseGuide';
+import { WaterReminderCard } from '../components/WaterReminderCard';
+import { WaterTracker } from '../components/WaterTracker';
 import { Card } from '../components/Cards/Card';
 import { MetricCard } from '../components/Cards/MetricCard';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import { getMissingCheckInItems, generateCoachAdvice, getTodayTargets } from '../rules/coachRules';
-import type { AppPage, AppState, ReminderSettings as ReminderSettingsType } from '../types';
+import { calculateWaterGoal } from '../rules/waterRules';
+import type { AppPage, AppState, ReminderSettings as ReminderSettingsType, WaterLog, WaterReminderSettings } from '../types';
 import { getAverageWeight, getTrainingCompletionRate, hasTrainingCompleted, round } from '../utils/calculations';
 import { formatChineseDate, getDayKey, getPhaseLabel, toDateKey } from '../utils/date';
 
@@ -14,9 +17,12 @@ interface TodayPageProps {
   state: AppState;
   onPageChange: (page: AppPage) => void;
   onReminderChange: (settings: ReminderSettingsType) => void;
+  onAddWater: (log: WaterLog) => void;
+  onUndoWater: (date: string) => void;
+  onWaterSettingsChange: (settings: WaterReminderSettings) => void;
 }
 
-export function TodayPage({ state, onPageChange, onReminderChange }: TodayPageProps) {
+export function TodayPage({ state, onPageChange, onReminderChange, onAddWater, onUndoWater, onWaterSettingsChange }: TodayPageProps) {
   const today = toDateKey();
   const plan = defaultTrainingPlan[getDayKey(today)];
   const todayLog = state.dailyLogs[today];
@@ -27,6 +33,8 @@ export function TodayPage({ state, onPageChange, onReminderChange }: TodayPagePr
   const sevenDayAverage = getAverageWeight(state.dailyLogs, today, 7);
   const completionRate = getTrainingCompletionRate(state.trainingSessions, today);
   const completedTraining = hasTrainingCompleted(session);
+  const waterLogs = state.waterLogs[today] ?? [];
+  const waterGoal = calculateWaterGoal(state.profile, plan, today);
 
   return (
     <div className="space-y-4">
@@ -155,11 +163,34 @@ export function TodayPage({ state, onPageChange, onReminderChange }: TodayPagePr
       <div className="grid grid-cols-2 gap-3">
         <MetricCard label="步数目标" value={targets.steps} hint="减脂停滞时优先加步数" />
         <MetricCard label="蛋白质目标" value={targets.protein} hint="每餐必须有蛋白质" />
-        <MetricCard label="饮水目标" value={targets.water} />
+        <MetricCard label="饮水目标" value={`${waterGoal.totalGoalMl}ml`} hint={waterGoal.activityExtraMl ? `含活动额外 ${waterGoal.activityExtraMl}ml` : '休息日不额外增加'} />
         <MetricCard label="睡眠目标" value={targets.sleep} hint="第 1 周 00:30 上床" />
         <MetricCard label="7天平均体重" value={sevenDayAverage ? `${round(sevenDayAverage, 1)}kg` : '数据不足'} />
         <MetricCard label="本周训练完成率" value={`${completionRate}%`} />
       </div>
+
+      <WaterTracker
+        date={today}
+        profile={state.profile}
+        todayPlan={plan}
+        logs={waterLogs}
+        compact
+        showHistory={false}
+        onAdd={onAddWater}
+        onUndo={() => onUndoWater(today)}
+        onDetails={() => onPageChange('checkin')}
+      />
+
+      <WaterReminderCard
+        date={today}
+        profile={state.profile}
+        todayPlan={plan}
+        logs={waterLogs}
+        settings={state.waterReminderSettings}
+        onSettingsChange={onWaterSettingsChange}
+        onAdd={onAddWater}
+        compact
+      />
 
       <UseGuide />
       <PwaInstallGuide />
