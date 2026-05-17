@@ -1,0 +1,22 @@
+:root {
+  --bg-silver-0: #F7F9FC;
+  --bg-silver-1: #EEF3F8;
+  --bg-silver-2: #E4EBF3;
+  --glass-white: rgba(255,255,255,0.58);
+  --glass-white-strong: rgba(255,255,255,0.76);
+  --glass-dark: rgba(18,26,38,0.62);
+  --glass-dark-strong: rgba(12,18,28,0.82);
+  --text-main: #101722;
+  --text-muted: #7A8594;
+  --text-soft: #A4ADBA;
+  --blue-main: #3A82F7;
+  --blue-soft: #8FB9FF;
+  --blue-glow: rgba(78,145,255,0.48);
+  --silver-glow: rgba(245,248,255,0.82);
+  --dark-0: #050A11;
+  --dark-1: #0A121D;
+  --dark-2: #111B28;
+  --border-light: rgba(255,255,255,0.72);
+  --border-dark: rgba(255,255,255,0.16);
+}
+

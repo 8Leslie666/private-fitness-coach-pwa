@@ -1,0 +1,18 @@
+{
+  "name": "Private Fitness Coach PWA",
+  "short_name": "修炼",
+  "description": "私人修炼型健身教练 PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F9FC",
+  "theme_color": "#F7F9FC",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
