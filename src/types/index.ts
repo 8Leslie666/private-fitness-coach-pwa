@@ -1,6 +1,16 @@
 import type { WaterLog, WaterReminderSettings } from './water';
+import type { WorkoutSession } from './workout';
 
 export type { WaterGoal, WaterLog, WaterReminderSettings, WaterSummary } from './water';
+export type {
+  TimerMode,
+  TimerState,
+  WorkoutExercise,
+  WorkoutSession,
+  WorkoutSet,
+  WorkoutState,
+  WorkoutStatus,
+} from './workout';
 
 export type DayKey =
   | 'monday'
@@ -11,7 +21,7 @@ export type DayKey =
   | 'saturday'
   | 'sunday';
 
-export type AppPage = 'today' | 'checkin' | 'training' | 'advice' | 'weekly';
+export type AppPage = 'today' | 'checkin' | 'training' | 'workout' | 'advice' | 'weekly';
 
 export type MainLift = '深蹲' | '卧推' | '硬拉';
 
@@ -136,6 +146,7 @@ export interface AppState {
   profile: UserProfile;
   dailyLogs: Record<string, DailyLog>;
   trainingSessions: Record<string, TrainingSession>;
+  workoutSessions: Record<string, WorkoutSession>;
   waterLogs: Record<string, WaterLog[]>;
   waterReminderSettings: WaterReminderSettings;
   reminders: ReminderSettings;

@@ -6,15 +6,22 @@ import { VanGoghBackground } from '../VanGoghBackground';
 interface AppLayoutProps {
   page: AppPage;
   onPageChange: (page: AppPage) => void;
+  hideNav?: boolean;
   children: ReactNode;
 }
 
-export function AppLayout({ page, onPageChange, children }: AppLayoutProps) {
+export function AppLayout({ page, onPageChange, hideNav = false, children }: AppLayoutProps) {
   return (
     <div className="art-canvas min-h-screen bg-surface text-ink">
       <VanGoghBackground />
-      <main className="safe-bottom mx-auto w-full max-w-md px-4 pb-28 pt-4 sm:pt-6">{children}</main>
-      <BottomNav page={page} onChange={onPageChange} />
+      {hideNav ? (
+        children
+      ) : (
+        <>
+          <main className="safe-bottom mx-auto w-full max-w-md px-4 pb-28 pt-4 sm:pt-6">{children}</main>
+          <BottomNav page={page} onChange={onPageChange} />
+        </>
+      )}
     </div>
   );
 }

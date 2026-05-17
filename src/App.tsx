@@ -4,6 +4,7 @@ import { AdvicePage } from './pages/AdvicePage';
 import { CheckInPage } from './pages/CheckInPage';
 import { TodayPage } from './pages/TodayPage';
 import { TrainingPage } from './pages/TrainingPage';
+import { WorkoutPage } from './pages/WorkoutPage';
 import { WeeklyReportPage } from './pages/WeeklyReportPage';
 import {
   exportState,
@@ -15,9 +16,10 @@ import {
   upsertTrainingSession,
 } from './storage/localStorage';
 import { addWaterLog, undoLatestWaterLog, updateWaterReminderSettings } from './storage/waterStorage';
-import type { AppPage, DailyLog, ReminderSettings, TrainingSession, WaterLog, WaterReminderSettings } from './types';
+import { upsertWorkoutSession } from './storage/workoutStorage';
+import type { AppPage, DailyLog, ReminderSettings, TrainingSession, WaterLog, WaterReminderSettings, WorkoutSession } from './types';
 
-const validPages: AppPage[] = ['today', 'checkin', 'training', 'advice', 'weekly'];
+const validPages: AppPage[] = ['today', 'checkin', 'training', 'workout', 'advice', 'weekly'];
 
 function pageFromHash(): AppPage {
   const hash = window.location.hash.replace('#', '') as AppPage;
@@ -66,6 +68,15 @@ export default function App() {
             onUndoWater={(date) => setState((current) => undoLatestWaterLog(current, date))}
           />
         );
+      case 'workout':
+        return (
+          <WorkoutPage
+            state={state}
+            onWorkoutChange={(session: WorkoutSession) => setState((current) => upsertWorkoutSession(current, session))}
+            onSaveTraining={(session: TrainingSession) => setState((current) => upsertTrainingSession(current, session))}
+            onExit={() => changePage('today')}
+          />
+        );
       case 'advice':
         return <AdvicePage state={state} />;
       case 'weekly':
@@ -85,14 +96,7 @@ export default function App() {
               setPage(nextPage);
               setHash(nextPage);
             }}
-            onReminderChange={(settings: ReminderSettings) =>
-              setState((current) => updateReminders(current, settings))
-            }
             onAddWater={(log: WaterLog) => setState((current) => addWaterLog(current, log))}
-            onUndoWater={(date) => setState((current) => undoLatestWaterLog(current, date))}
-            onWaterSettingsChange={(settings: WaterReminderSettings) =>
-              setState((current) => updateWaterReminderSettings(current, settings))
-            }
           />
         );
     }
@@ -105,7 +109,7 @@ export default function App() {
   }
 
   return (
-    <AppLayout page={page} onPageChange={changePage}>
+    <AppLayout page={page} onPageChange={changePage} hideNav={page === 'workout'}>
       {currentPage}
     </AppLayout>
   );

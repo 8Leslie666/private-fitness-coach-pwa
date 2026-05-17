@@ -19,6 +19,7 @@ export function createInitialState(): AppState {
     profile: defaultUserProfile,
     dailyLogs: {},
     trainingSessions: {},
+    workoutSessions: {},
     waterLogs: {},
     waterReminderSettings: defaultWaterReminderSettings,
     reminders: defaultReminders,
@@ -46,6 +47,7 @@ export function loadAppState(): AppState {
         lastNotified: parsed.reminders?.lastNotified ?? {},
       },
       waterLogs: parsed.waterLogs ?? {},
+      workoutSessions: parsed.workoutSessions ?? {},
       waterReminderSettings: {
         ...defaultWaterReminderSettings,
         ...parsed.waterReminderSettings,
