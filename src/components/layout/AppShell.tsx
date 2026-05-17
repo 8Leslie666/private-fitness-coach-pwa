@@ -584,22 +584,22 @@ function ReminderBlock({
   onChange: (patch: Partial<ReminderRhythm['morning']>) => void;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-[28px] border border-white/75 bg-white/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_14px_32px_rgba(32,48,70,.08)] ${disabled ? 'opacity-55' : ''}`}>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_20%,rgba(143,185,255,.18),rgba(143,185,255,0)_38%)]" />
+    <div className={`relative overflow-hidden rounded-[28px] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.86),0_14px_32px_rgba(32,48,70,.08)] ${disabled ? 'border-slate-200/80 bg-white/40 opacity-60' : item.enabled ? 'border-[#8FB9FF]/70 bg-[rgba(239,246,255,.72)]' : 'border-white/75 bg-white/50'}`}>
+      <div className={`pointer-events-none absolute inset-0 ${!disabled && item.enabled ? 'bg-[radial-gradient(circle_at_78%_20%,rgba(58,130,247,.28),rgba(143,185,255,0)_42%)]' : 'bg-[radial-gradient(circle_at_78%_20%,rgba(143,185,255,.12),rgba(143,185,255,0)_38%)]'}`} />
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/62 text-[color:var(--blue-main)] shadow-[inset_0_1px_0_rgba(255,255,255,.9)]">
+          <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ${!disabled && item.enabled ? 'bg-[color:var(--blue-main)] text-white' : 'bg-white/62 text-[color:var(--blue-main)]'}`}>
             {icon}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold">{item.title}</span>
-              <span className="rounded-full bg-white/62 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--blue-main)]">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${!disabled && item.enabled ? 'bg-[color:var(--blue-main)] text-white' : 'bg-white/62 text-[color:var(--blue-main)]'}`}>
                 {accent}
               </span>
             </div>
             <input
-              className="mt-2 w-24 rounded-full border border-white/80 bg-white/58 px-3 py-2 text-sm font-semibold tabular-nums outline-none"
+              className="liquid-input mt-2 w-28 rounded-full px-3 py-2 font-semibold tabular-nums"
               type="time"
               value={item.time}
               disabled={disabled || !item.enabled}
@@ -615,7 +615,7 @@ function ReminderBlock({
           提醒内容
         </span>
         <input
-          className="w-full rounded-2xl border border-white/80 bg-white/58 px-3 py-2 text-xs outline-none"
+          className="liquid-input w-full rounded-2xl px-3 py-2"
           value={item.note}
           disabled={disabled || !item.enabled}
           onChange={(event) => onChange({ note: event.target.value })}
@@ -639,11 +639,15 @@ function Toggle({
       type="button"
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative h-8 w-[54px] rounded-full border transition ${checked ? 'border-[#8FB9FF]/70 bg-[color:var(--blue-main)]/80' : 'border-white/80 bg-slate-300/55'} ${disabled ? 'opacity-50' : ''}`}
+      className={`relative h-8 w-[56px] rounded-full border transition ${
+        checked
+          ? 'border-[#8FB9FF] bg-[color:var(--blue-main)] shadow-[0_0_18px_rgba(58,130,247,.28),inset_0_1px_0_rgba(255,255,255,.34)]'
+          : 'border-slate-300/80 bg-slate-300/55'
+      } ${disabled ? 'opacity-45' : ''}`}
       aria-pressed={checked}
     >
       <span
-        className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-[0_5px_14px_rgba(16,23,34,.18)] transition ${checked ? 'left-7' : 'left-1'}`}
+        className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-[0_5px_14px_rgba(16,23,34,.18)] transition ${checked ? 'left-[29px]' : 'left-1'}`}
       />
     </button>
   );

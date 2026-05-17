@@ -1,5 +1,14 @@
-const CACHE_NAME = 'private-fitness-coach-v1';
-const ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+const CACHE_NAME = 'private-fitness-coach-v2';
+const BASE_URL = new URL(self.registration.scope).pathname;
+const fromBase = (path) => `${BASE_URL}${path}`.replace(/\/{2,}/g, '/');
+const ASSETS = [
+  fromBase(''),
+  fromBase('index.html'),
+  fromBase('manifest.webmanifest'),
+  fromBase('icon-192.png'),
+  fromBase('icon-512.png'),
+  fromBase('apple-touch-icon.png'),
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
@@ -26,7 +35,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => caches.match(fromBase('index.html')));
     }),
   );
 });

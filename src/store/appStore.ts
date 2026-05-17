@@ -1165,19 +1165,36 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'private-fitness-coach-pwa',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState) => {
         const persisted = persistedState as Partial<AppState>;
         const hasStructuredPlans = Boolean(persisted.plans?.[0]?.sections?.length);
-        if (hasStructuredPlans && persisted.trainingProgram?.days?.length) return persisted;
+        const cleanPlans = (hasStructuredPlans ? persisted.plans : initialPlans)?.map((item) => ({
+          ...item,
+          completed: false,
+        })) ?? initialPlans;
+        const cleanProgramDays = (
+          hasStructuredPlans && persisted.trainingProgram?.days?.length
+            ? persisted.trainingProgram.days
+            : initialTrainingProgram.days
+        ).map((item) => ({ ...item, completed: false }));
         return {
           ...persisted,
           screen: 'cultivation',
           previousScreen: 'cultivation',
           drawer: null,
-          plans: initialPlans,
-          trainingProgram: initialTrainingProgram,
+          plans: cleanPlans,
+          trainingProgram: {
+            ...(persisted.trainingProgram ?? initialTrainingProgram),
+            currentSequenceIndex: 1,
+            days: cleanProgramDays,
+          },
+          hydration: {
+            ...(persisted.hydration ?? initialHydration),
+            currentMl: 0,
+            logs: [],
+          },
           workoutSession: null,
         };
       },

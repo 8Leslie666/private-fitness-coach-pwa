@@ -2,17 +2,33 @@ import { Activity, BarChart3, Droplets, Dumbbell, Scale, Utensils } from 'lucide
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { useAppStore } from '../store/appStore';
 
-const cards = [
-  { title: '本周行练', value: '3 / 4', sub: '剩余 1 次', icon: Dumbbell },
-  { title: '体重趋势', value: '-0.5kg', sub: '最近一周', icon: Scale },
-  { title: '三大项恢复', value: '稳定', sub: '可继续推进', icon: Activity },
-  { title: '膳食执行', value: '良好', sub: '两餐制保持', icon: Utensils },
-  { title: '喝水执行', value: '64%', sub: '今日 1.6L', icon: Droplets, hydration: true },
-];
-
 export function ProgressPage() {
   const openDrawer = useAppStore((state) => state.openDrawer);
   const navigate = useAppStore((state) => state.navigate);
+  const plans = useAppStore((state) => state.plans);
+  const hydration = useAppStore((state) => state.hydration);
+  const strengthPlans = plans.filter((plan) => plan.type === 'strength');
+  const totalTraining = strengthPlans.length || 4;
+  const completedTraining = strengthPlans.filter((plan) => plan.completed).length;
+  const waterRate = Math.round((hydration.currentMl / hydration.targetMl) * 100);
+  const cards = [
+    {
+      title: '本周行练',
+      value: `${completedTraining} / ${totalTraining}`,
+      sub: `剩余 ${Math.max(totalTraining - completedTraining, 0)} 次`,
+      icon: Dumbbell,
+    },
+    { title: '体重趋势', value: '待记录', sub: '本周未开始', icon: Scale },
+    { title: '三大项恢复', value: '待判断', sub: '完成训练后更新', icon: Activity },
+    { title: '膳食执行', value: '待记录', sub: '今日未记录', icon: Utensils },
+    {
+      title: '喝水执行',
+      value: `${waterRate}%`,
+      sub: `今日 ${(hydration.currentMl / 1000).toFixed(1)}L`,
+      icon: Droplets,
+      hydration: true,
+    },
+  ];
 
   return (
     <section className="page">
@@ -61,4 +77,3 @@ export function ProgressPage() {
     </section>
   );
 }
-

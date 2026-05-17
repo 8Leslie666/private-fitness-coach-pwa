@@ -12,6 +12,11 @@ export function CultivationPage() {
   const vitals = useAppStore((state) => state.vitals);
   const waterRate = Math.round((hydration.currentMl / hydration.targetMl) * 100);
   const today = plans.find((plan) => plan.sequenceIndex === trainingProgram.currentSequenceIndex) ?? plans[0];
+  const strengthPlans = plans.filter((plan) => plan.type === 'strength');
+  const totalTraining = strengthPlans.length || trainingProgram.weeklyFrequency;
+  const completedTraining = strengthPlans.filter((plan) => plan.completed).length;
+  const remainingTraining = Math.max(totalTraining - completedTraining, 0);
+  const completionRate = totalTraining ? Math.round((completedTraining / totalTraining) * 100) : 0;
 
   return (
     <section className="page">
@@ -42,16 +47,16 @@ export function CultivationPage() {
               {today ? `${today.weight}kg × ${today.reps} × ${today.sets} · 预计 ${today.durationMin ?? 55} 分钟` : '主项 / 辅助 / 核心收尾'}
             </div>
           </div>
-          <ProgressCircle value={72} />
+          <ProgressCircle value={completionRate} />
         </div>
         <div className="mt-5 text-xs text-[color:var(--text-muted)]">计划完成度</div>
         <div className="progress-track mt-2">
-          <div className="progress-fill w-[72%]" />
+          <div className="progress-fill" style={{ width: `${completionRate}%` }} />
         </div>
         <div className="mt-4 flex items-center gap-3 text-sm text-[color:var(--text-muted)]">
-          <span>本周训练 3 / 4 次</span>
+          <span>本周训练 {completedTraining} / {totalTraining} 次</span>
           <span className="h-4 w-px bg-slate-300/70" />
-          <span>剩余 1 次</span>
+          <span>剩余 {remainingTraining} 次</span>
         </div>
       </GlassPanel>
 
