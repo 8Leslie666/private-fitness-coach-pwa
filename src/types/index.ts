@@ -21,7 +21,30 @@ export type DayKey =
   | 'saturday'
   | 'sunday';
 
-export type AppPage = 'today' | 'checkin' | 'training' | 'workout' | 'advice' | 'weekly';
+export type AppPage =
+  | 'today'
+  | 'training'
+  | 'workout'
+  | 'diet'
+  | 'mine'
+  | 'checkin'
+  | 'advice'
+  | 'weekly'
+  | 'water'
+  | 'diet-detail'
+  | 'takeout-scan'
+  | 'frequent-orders'
+  | 'mcdonalds'
+  | 'profile'
+  | 'training-plan'
+  | 'training-history'
+  | 'training-settings'
+  | 'diet-restrictions'
+  | 'water-settings'
+  | 'reminder-settings'
+  | 'exercise-library'
+  | 'takeout-library'
+  | 'data-export';
 
 export type MainLift = '深蹲' | '卧推' | '硬拉';
 
