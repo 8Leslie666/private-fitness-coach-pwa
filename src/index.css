@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  color: #182349;
-  background: #f7f8fb;
+  color: #1a1a1a;
+  background: #f8f5f0;
   font-family:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
     "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
@@ -29,11 +29,13 @@ body {
   min-width: 320px;
   overflow-x: hidden;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(247, 248, 251, 0.92)),
+    radial-gradient(circle at 20% 8%, rgba(212, 175, 55, 0.12), transparent 28%),
+    radial-gradient(circle at 86% 16%, rgba(46, 139, 87, 0.11), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(248, 245, 240, 0.94)),
     repeating-linear-gradient(
       115deg,
-      rgba(29, 63, 143, 0.045) 0,
-      rgba(29, 63, 143, 0.045) 1px,
+      rgba(26, 26, 26, 0.026) 0,
+      rgba(26, 26, 26, 0.026) 1px,
       transparent 1px,
       transparent 18px
     );
@@ -81,16 +83,125 @@ textarea {
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(130deg, rgba(246, 200, 95, 0.16), transparent 30%),
-    linear-gradient(220deg, rgba(37, 99, 235, 0.12), transparent 34%),
+    linear-gradient(130deg, rgba(212, 175, 55, 0.11), transparent 30%),
+    linear-gradient(220deg, rgba(46, 139, 87, 0.10), transparent 34%),
     repeating-linear-gradient(
       160deg,
-      rgba(29, 63, 143, 0.04) 0,
-      rgba(29, 63, 143, 0.04) 1px,
+      rgba(26, 26, 26, 0.024) 0,
+      rgba(26, 26, 26, 0.024) 1px,
       transparent 1px,
       transparent 22px
     ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 248, 251, 0.98));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 245, 240, 0.98));
+}
+
+.ink-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(248, 245, 240, 0.35), rgba(255, 255, 240, 0.2)),
+    repeating-linear-gradient(92deg, rgba(26, 26, 26, 0.018) 0, rgba(26, 26, 26, 0.018) 1px, transparent 1px, transparent 9px);
+}
+
+.ink-mountain {
+  position: absolute;
+  height: 180px;
+  width: 115vw;
+  border-radius: 52% 48% 0 0;
+  filter: blur(0.3px);
+  opacity: 0.5;
+}
+
+.ink-mountain-a {
+  left: -12vw;
+  top: 16vh;
+  background:
+    radial-gradient(ellipse at 28% 100%, rgba(46, 139, 87, 0.14), transparent 52%),
+    radial-gradient(ellipse at 66% 100%, rgba(26, 26, 26, 0.07), transparent 48%);
+  transform: rotate(-2deg);
+}
+
+.ink-mountain-b {
+  right: -22vw;
+  bottom: 5vh;
+  background:
+    radial-gradient(ellipse at 40% 100%, rgba(26, 26, 26, 0.055), transparent 50%),
+    radial-gradient(ellipse at 70% 100%, rgba(46, 139, 87, 0.10), transparent 45%);
+  transform: rotate(3deg);
+}
+
+.ink-mist {
+  position: absolute;
+  width: 72vw;
+  height: 70px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: mist-drift 16s ease-in-out infinite alternate;
+}
+
+.ink-mist-a {
+  left: -18vw;
+  top: 18vh;
+}
+
+.ink-mist-b {
+  right: -22vw;
+  top: 55vh;
+  animation-duration: 21s;
+}
+
+.ink-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.58)),
+    repeating-linear-gradient(110deg, rgba(26, 26, 26, 0.026) 0, rgba(26, 26, 26, 0.026) 1px, transparent 1px, transparent 18px);
+  box-shadow: 0 18px 45px rgba(26, 26, 26, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.ink-card::after {
+  content: "";
+  position: absolute;
+  right: -26px;
+  top: -26px;
+  width: 96px;
+  height: 96px;
+  border: 1px solid rgba(46, 139, 87, 0.10);
+  border-radius: 55% 45% 50% 50%;
+  pointer-events: none;
+}
+
+.ink-title {
+  font-family: "Noto Serif SC", "Songti SC", "STSong", "PingFang SC", serif;
+  letter-spacing: 0;
+}
+
+.seal-dot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #c41e3a;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.training-focus {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(46, 139, 87, 0.16), transparent 34%),
+    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 22px),
+    linear-gradient(180deg, #17202d, #111827);
+}
+
+.breath-button {
+  animation: breath 2.8s ease-in-out infinite;
 }
 
 .brush-panel {
@@ -104,9 +215,9 @@ textarea {
   inset: -42% -28% auto auto;
   width: 220px;
   height: 220px;
-  border: 18px solid rgba(37, 99, 235, 0.12);
-  border-left-color: rgba(246, 200, 95, 0.28);
-  border-bottom-color: rgba(29, 63, 143, 0.16);
+  border: 18px solid rgba(46, 139, 87, 0.10);
+  border-left-color: rgba(212, 175, 55, 0.22);
+  border-bottom-color: rgba(26, 26, 26, 0.08);
   border-radius: 44% 56% 48% 52%;
   transform: rotate(-18deg);
 }
@@ -118,14 +229,14 @@ textarea {
   bottom: -24px;
   width: 170px;
   height: 70px;
-  border-top: 10px solid rgba(246, 200, 95, 0.36);
+  border-top: 10px solid rgba(212, 175, 55, 0.22);
   border-radius: 50%;
   transform: rotate(-10deg);
 }
 
 .brush-stroke {
   background:
-    linear-gradient(90deg, rgba(246, 200, 95, 0.75), rgba(37, 99, 235, 0.7)),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.70), rgba(46, 139, 87, 0.68)),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0, rgba(255, 255, 255, 0.28) 2px, transparent 2px, transparent 7px);
 }
 
@@ -227,7 +338,7 @@ textarea {
   height: min(72vw, 280px);
   border-radius: 999px;
   padding: 12px;
-  box-shadow: 0 24px 55px rgba(37, 99, 235, 0.13);
+  box-shadow: 0 24px 55px rgba(46, 139, 87, 0.13);
   transition: background 240ms ease;
 }
 
@@ -239,7 +350,7 @@ textarea {
   border-radius: 999px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.96)),
-    repeating-linear-gradient(150deg, rgba(37, 99, 235, 0.05) 0, rgba(37, 99, 235, 0.05) 1px, transparent 1px, transparent 16px);
+    repeating-linear-gradient(150deg, rgba(46, 139, 87, 0.05) 0, rgba(46, 139, 87, 0.05) 1px, transparent 1px, transparent 16px);
 }
 
 .page-slide {
@@ -277,5 +388,26 @@ textarea {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes mist-drift {
+  from {
+    transform: translateX(0) translateY(0);
+    opacity: 0.28;
+  }
+  to {
+    transform: translateX(16vw) translateY(-8px);
+    opacity: 0.48;
+  }
+}
+
+@keyframes breath {
+  0%,
+  100% {
+    box-shadow: 0 18px 45px rgba(46, 139, 87, 0.16);
+  }
+  50% {
+    box-shadow: 0 22px 60px rgba(46, 139, 87, 0.24);
   }
 }

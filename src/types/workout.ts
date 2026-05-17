@@ -41,22 +41,31 @@ export interface WorkoutExercise {
   name: string;
   category: 'main' | 'accessory' | 'core' | 'warmup' | 'cooldown';
   plannedWeight: number | null;
+  actualWeight?: number | null;
   plannedSets: number;
+  actualSets?: number;
   plannedReps: string;
+  actualReps?: string;
   restSeconds: number;
   targetRpe: string;
   cue: string;
   sets: WorkoutSet[];
+  skipped?: boolean;
   completed: boolean;
 }
 
 export interface WorkoutSession {
   id: string;
   date: string;
+  title?: string;
   workoutName: string;
+  phase?: string;
   status: WorkoutStatus;
   startedAt?: string;
   completedAt?: string;
+  estimatedDuration?: number;
+  actualDuration?: number;
+  currentStepIndex?: number;
   currentExerciseIndex: number;
   currentSetIndex: number;
   currentState: WorkoutState;
@@ -64,6 +73,7 @@ export interface WorkoutSession {
   timer: TimerState;
   totalDuration?: number;
   completionRate: number;
+  summary?: string;
   loweredIntensity?: boolean;
   shortVersion?: boolean;
 }

@@ -30,13 +30,28 @@ import {
   loadAppState,
   resetAppState,
   saveAppState,
+  deleteFrequentStore,
   updateReminders,
+  updateProfile,
+  upsertFrequentStore,
   upsertDailyLog,
+  upsertMealPlan,
   upsertTrainingSession,
 } from './storage/localStorage';
 import { addWaterLog, undoLatestWaterLog, updateWaterReminderSettings } from './storage/waterStorage';
 import { upsertWorkoutSession } from './storage/workoutStorage';
-import type { AppPage, DailyLog, ReminderSettings, TrainingSession, WaterLog, WaterReminderSettings, WorkoutSession } from './types';
+import type {
+  AppPage,
+  DailyLog,
+  FrequentStore,
+  MealPlan,
+  ReminderSettings,
+  TrainingSession,
+  UserProfile,
+  WaterLog,
+  WaterReminderSettings,
+  WorkoutSession,
+} from './types';
 
 const validPages: AppPage[] = [
   'today',
@@ -98,6 +113,10 @@ export default function App() {
       onWaterSettingsChange: (settings: WaterReminderSettings) =>
         setState((current) => updateWaterReminderSettings(current, settings)),
       onReminderChange: (settings: ReminderSettings) => setState((current) => updateReminders(current, settings)),
+      onProfileChange: (profile: UserProfile) => setState((current) => updateProfile(current, profile)),
+      onMealPlanChange: (mealPlan: MealPlan) => setState((current) => upsertMealPlan(current, mealPlan)),
+      onFrequentStoreChange: (store: FrequentStore) => setState((current) => upsertFrequentStore(current, store)),
+      onFrequentStoreDelete: (storeId: string) => setState((current) => deleteFrequentStore(current, storeId)),
       onExport: () => exportState(state),
       onReset: () => setState(resetAppState()),
     };
@@ -131,10 +150,21 @@ export default function App() {
             state={state}
             onPageChange={changePage}
             onAddWater={(log: WaterLog) => setState((current) => addWaterLog(current, log))}
+            onMealPlanChange={(mealPlan: MealPlan) => setState((current) => upsertMealPlan(current, mealPlan))}
+            onFrequentStoreChange={(store: FrequentStore) => setState((current) => upsertFrequentStore(current, store))}
           />
         );
       case 'mine':
-        return <MinePage state={state} onPageChange={changePage} />;
+        return (
+          <MinePage
+            state={state}
+            onPageChange={changePage}
+            onProfileChange={(profile: UserProfile) => setState((current) => updateProfile(current, profile))}
+            onReminderChange={(settings: ReminderSettings) => setState((current) => updateReminders(current, settings))}
+            onExport={() => exportState(state)}
+            onReset={() => setState(resetAppState())}
+          />
+        );
       case 'workout':
         return (
           <WorkoutPage
@@ -194,6 +224,8 @@ export default function App() {
               setHash(nextPage);
             }}
             onAddWater={(log: WaterLog) => setState((current) => addWaterLog(current, log))}
+            onSaveLog={(log: DailyLog) => setState((current) => upsertDailyLog(current, log))}
+            onMealPlanChange={(mealPlan: MealPlan) => setState((current) => upsertMealPlan(current, mealPlan))}
           />
         );
     }

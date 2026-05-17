@@ -1,0 +1,24 @@
+interface EditableMetricProps {
+  label: string;
+  value: string;
+  hint?: string;
+  onClick?: () => void;
+  dark?: boolean;
+}
+
+export function EditableMetric({ label, value, hint, onClick, dark = false }: EditableMetricProps) {
+  const Wrapper = onClick ? 'button' : 'div';
+  return (
+    <Wrapper
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={`rounded-[22px] p-3 text-left transition active:scale-[0.98] ${
+        dark ? 'bg-white/10 text-white' : 'bg-white/72 text-ink shadow-soft'
+      }`}
+    >
+      <p className={`text-xs ${dark ? 'text-white/55' : 'text-muted'}`}>{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-normal">{value}</p>
+      {hint && <p className={`mt-1 text-xs ${dark ? 'text-white/55' : 'text-muted'}`}>{hint}</p>}
+    </Wrapper>
+  );
+}

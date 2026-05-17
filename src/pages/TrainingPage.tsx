@@ -1,5 +1,5 @@
 import { BookOpen, ChevronRight, Dumbbell, History, Settings } from 'lucide-react';
-import { Card } from '../components/Cards/Card';
+import { InkCard } from '../components/Ink/InkCard';
 import { defaultTrainingPlan } from '../data/defaultTrainingPlan';
 import type { AppPage, AppState, TrainingSession, WaterLog } from '../types';
 import { getDayKey, getPhaseLabel, toDateKey } from '../utils/date';
@@ -28,17 +28,17 @@ export function TrainingPage({ state, onPageChange }: TrainingPageProps) {
   return (
     <div className="page-slide space-y-4">
       <header className="pt-2">
-        <div className="mb-4 h-1.5 w-20 rounded-full brush-stroke" />
+        <span className="seal-dot">练</span>
         <p className="text-sm text-muted">{getPhaseLabel(state.createdAt, today)}</p>
-        <h1 className="mt-2 text-2xl font-bold">训练</h1>
+        <h1 className="ink-title mt-2 text-3xl font-semibold">行练</h1>
       </header>
 
-      <Card
-        title="今日训练"
+      <InkCard
+        title="今日行练"
         subtitle={`${plan.weekdayName} · ${plan.estimatedMinutes} 分钟 · ${status.label}`}
       >
         <div className="space-y-4">
-          <div className="rounded-[26px] bg-surface p-4">
+          <div className="rounded-[26px] bg-white/68 p-4 shadow-soft">
             <p className="text-sm text-muted">今日目标</p>
             <p className="mt-2 text-xl font-bold text-ink">{plan.dayType}</p>
             <p className="mt-2 text-sm leading-6 text-muted">
@@ -54,7 +54,7 @@ export function TrainingPage({ state, onPageChange }: TrainingPageProps) {
             <ChevronRight size={18} />
           </button>
         </div>
-      </Card>
+      </InkCard>
 
       <div className="grid grid-cols-2 gap-3">
         {[
@@ -69,9 +69,9 @@ export function TrainingPage({ state, onPageChange }: TrainingPageProps) {
               key={label as string}
               type="button"
               onClick={() => onPageChange(page as AppPage)}
-              className="flex min-h-[86px] flex-col items-start justify-between rounded-[24px] border border-white/80 bg-white/95 p-4 text-left shadow-soft active:scale-[0.99]"
+              className="flex min-h-[86px] flex-col items-start justify-between rounded-[24px] border border-white/80 bg-white/82 p-4 text-left shadow-soft active:scale-[0.99]"
             >
-              <EntryIcon size={20} className="text-coach" />
+              <EntryIcon size={20} className="text-mountain" />
               <span className="text-sm font-semibold text-ink">{label as string}</span>
             </button>
           );

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitness-coach-shell-v1';
+const CACHE_NAME = 'fitness-coach-shell-v2';
 const BASE_PATH = new URL(self.registration.scope).pathname;
 const APP_SHELL = [
   BASE_PATH,

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { BottomNav } from '../BottomNav/BottomNav';
 import type { AppPage } from '../../types';
-import { VanGoghBackground } from '../VanGoghBackground';
+import { InkBackground } from '../Ink/InkBackground';
 
 interface AppLayoutProps {
   page: AppPage;
@@ -13,7 +13,7 @@ interface AppLayoutProps {
 export function AppLayout({ page, onPageChange, hideNav = false, children }: AppLayoutProps) {
   return (
     <div className="art-canvas min-h-screen bg-surface text-ink">
-      <VanGoghBackground />
+      <InkBackground />
       {hideNav ? (
         children
       ) : (

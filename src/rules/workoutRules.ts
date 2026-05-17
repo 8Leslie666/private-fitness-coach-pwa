@@ -53,8 +53,11 @@ export function createWorkoutSession(date: string, plan: TrainingPlanDay): Worko
       name: exercise.name,
       category,
       plannedWeight: exercise.plannedWeight,
+      actualWeight: exercise.plannedWeight,
       plannedSets: exercise.plannedSets,
+      actualSets: exercise.plannedSets,
       plannedReps: exercise.plannedReps,
+      actualReps: exercise.plannedReps,
       restSeconds: restForExercise(category),
       targetRpe: targetRpeForExercise(category),
       cue: cueForExercise(exercise.name),
@@ -66,8 +69,12 @@ export function createWorkoutSession(date: string, plan: TrainingPlanDay): Worko
   return {
     id: `${date}-${plan.dayKey}`,
     date,
+    title: plan.dayType,
     workoutName: plan.dayType,
+    phase: '恢复减脂期',
     status: 'not_started',
+    estimatedDuration: plan.estimatedMinutes,
+    currentStepIndex: 0,
     currentExerciseIndex: 0,
     currentSetIndex: 0,
     currentState: 'overview',
@@ -281,14 +288,17 @@ export function startNextExercise(session: WorkoutSession): WorkoutSession {
 
 export function finishCooldown(session: WorkoutSession): WorkoutSession {
   const completedAt = nowIso();
+  const totalDuration = secondsBetween(session.startedAt, completedAt);
   return {
     ...session,
     status: 'completed',
     completedAt,
     currentState: 'summary',
     timer: { mode: 'idle', plannedSeconds: 0, extendedSeconds: 0 },
-    totalDuration: secondsBetween(session.startedAt, completedAt),
+    totalDuration,
+    actualDuration: totalDuration,
     completionRate: calculateWorkoutCompletion(session),
+    summary: '完成计划优先，训练后补水 500ml 左右，第二餐保证蛋白质。',
   };
 }
 
