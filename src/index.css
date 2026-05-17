@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #182349;
+  background: #f7f8fb;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(247, 248, 251, 0.92)),
+    repeating-linear-gradient(
+      115deg,
+      rgba(29, 63, 143, 0.045) 0,
+      rgba(29, 63, 143, 0.045) 1px,
+      transparent 1px,
+      transparent 18px
+    );
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  min-height: 44px;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 84px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.art-canvas {
+  position: relative;
+  isolation: isolate;
+}
+
+.art-canvas::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(130deg, rgba(246, 200, 95, 0.16), transparent 30%),
+    linear-gradient(220deg, rgba(37, 99, 235, 0.12), transparent 34%),
+    repeating-linear-gradient(
+      160deg,
+      rgba(29, 63, 143, 0.04) 0,
+      rgba(29, 63, 143, 0.04) 1px,
+      transparent 1px,
+      transparent 22px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 248, 251, 0.98));
+}
+
+.brush-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.brush-panel::before {
+  content: "";
+  position: absolute;
+  inset: -42% -28% auto auto;
+  width: 220px;
+  height: 220px;
+  border: 18px solid rgba(37, 99, 235, 0.12);
+  border-left-color: rgba(246, 200, 95, 0.28);
+  border-bottom-color: rgba(29, 63, 143, 0.16);
+  border-radius: 44% 56% 48% 52%;
+  transform: rotate(-18deg);
+}
+
+.brush-panel::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  bottom: -24px;
+  width: 170px;
+  height: 70px;
+  border-top: 10px solid rgba(246, 200, 95, 0.36);
+  border-radius: 50%;
+  transform: rotate(-10deg);
+}
+
+.brush-stroke {
+  background:
+    linear-gradient(90deg, rgba(246, 200, 95, 0.75), rgba(37, 99, 235, 0.7)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0, rgba(255, 255, 255, 0.28) 2px, transparent 2px, transparent 7px);
+}
