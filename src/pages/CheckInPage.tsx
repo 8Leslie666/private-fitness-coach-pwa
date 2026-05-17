@@ -49,10 +49,10 @@ export function CheckInPage({ state, onSave }: CheckInPageProps) {
       <header className="pt-2">
         <div className="mb-4 h-1.5 w-20 rounded-full brush-stroke" />
         <p className="text-sm text-muted">{formatChineseDate(today)}</p>
-        <h1 className="mt-2 text-2xl font-bold">记录体重</h1>
+        <h1 className="mt-2 text-2xl font-bold">每日记录</h1>
       </header>
 
-      <Card title="今日基础记录" subtitle="先记录关键数据，不做长表单。">
+      <Card title="今日基础记录" subtitle="体重、睡眠、步数先记录清楚。">
         <div className="space-y-4">
           <TextField label="今日体重" type="number" suffix="kg" value={form.weight} onChange={(value) => setForm({ ...form, weight: toNumber(value) })} placeholder="70.0" />
           <div className="grid grid-cols-2 gap-3">

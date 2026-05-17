@@ -1,4 +1,4 @@
-import { Bell, Database, Dumbbell, FileText, GlassWater, HeartPulse, Library, Settings, UserRound, Utensils } from 'lucide-react';
+import { Bell, ClipboardCheck, Database, Dumbbell, FileText, GlassWater, HeartPulse, Library, Settings, UserRound, Utensils } from 'lucide-react';
 import type { AppPage, AppState } from '../types';
 
 interface MinePageProps {
@@ -8,6 +8,7 @@ interface MinePageProps {
 
 const entries: Array<{ label: string; page: AppPage; Icon: typeof UserRound }> = [
   { label: '个人资料', page: 'profile', Icon: UserRound },
+  { label: '每日记录', page: 'checkin', Icon: ClipboardCheck },
   { label: '训练设置', page: 'training-settings', Icon: Settings },
   { label: '饮食禁忌', page: 'diet-restrictions', Icon: Utensils },
   { label: '饮水设置', page: 'water-settings', Icon: GlassWater },

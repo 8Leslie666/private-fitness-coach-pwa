@@ -29,6 +29,7 @@ function getWorkoutStatusLabel(state: AppState, date: string): string {
 export function TodayPage({ state, onPageChange, onAddWater }: TodayPageProps) {
   const today = toDateKey();
   const plan = defaultTrainingPlan[getDayKey(today)];
+  const todayLog = state.dailyLogs[today];
   const advice = generateCoachAdvice(state, today);
   const waterLogs = state.waterLogs[today] ?? [];
   const waterGoal = calculateWaterGoal(state.profile, plan, today);
@@ -100,7 +101,17 @@ export function TodayPage({ state, onPageChange, onAddWater }: TodayPageProps) {
         </div>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3">
+        <Card title="体重 / 睡眠" subtitle={todayLog?.weight ? `${todayLog.weight}kg · ${todayLog.sleepStart ?? '--:--'}-${todayLog.sleepEnd ?? '--:--'}` : '今天还没记录'}>
+          <button
+            type="button"
+            onClick={() => onPageChange('checkin')}
+            className="min-h-[48px] w-full rounded-2xl bg-surface px-3 text-sm font-semibold text-ink"
+          >
+            记录体重和睡眠
+          </button>
+        </Card>
+
         <Card title="今日饮水" subtitle={`${waterSummary.consumedMl} / ${waterSummary.goalMl}ml`}>
           <div className="space-y-3">
             <div className="h-2 overflow-hidden rounded-full bg-blue-50">
@@ -117,7 +128,7 @@ export function TodayPage({ state, onPageChange, onAddWater }: TodayPageProps) {
               </button>
               <button
                 type="button"
-                onClick={() => onPageChange('checkin')}
+                onClick={() => onPageChange('water')}
                 className="min-h-[48px] rounded-2xl bg-surface px-3 text-sm font-semibold text-ink"
               >
                 详情
