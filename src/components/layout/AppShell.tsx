@@ -10,6 +10,7 @@ import {
   type TrainingPlan,
   type UpsertPlanInput,
   type Vitals,
+  type WeightLog,
   type WorkoutLog,
   type WorkoutSession,
 } from '../../store/appStore';
@@ -86,6 +87,7 @@ function DrawerRenderer({ onClose }: { onClose: () => void }) {
   const reminderRhythm = useAppStore((state) => state.reminderRhythm);
   const workout = useAppStore((state) => state.workoutSession);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
+  const weightLogs = useAppStore((state) => state.weightLogs);
   const addWater = useAppStore((state) => state.addWater);
   const setWaterTarget = useAppStore((state) => state.setWaterTarget);
   const updateVitals = useAppStore((state) => state.updateVitals);
@@ -220,7 +222,7 @@ function DrawerRenderer({ onClose }: { onClose: () => void }) {
   }
 
   if (drawer.kind === 'data-management') {
-    return <DataManagementDrawer workoutLogs={workoutLogs} meals={meals} onClose={onClose} onReset={resetData} />;
+    return <DataManagementDrawer workoutLogs={workoutLogs} meals={meals} weightLogs={weightLogs} onClose={onClose} onReset={resetData} />;
   }
 
   if (drawer.kind === 'profile-edit') {
@@ -708,11 +710,13 @@ function PreferenceToggle({
 function DataManagementDrawer({
   workoutLogs,
   meals,
+  weightLogs,
   onClose,
   onReset,
 }: {
   workoutLogs: WorkoutLog[];
   meals: Meal[];
+  weightLogs: WeightLog[];
   onClose: () => void;
   onReset: () => void;
 }) {
@@ -738,9 +742,10 @@ function DataManagementDrawer({
   return (
     <AppDrawer title="数据管理" subtitle="本地保存、导出和重置" onClose={onClose}>
       <div className="drawer-body">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <HistoryMetric label="训练记录" value={`${workoutLogs.length}`} />
           <HistoryMetric label="餐食模板" value={`${meals.length}`} />
+          <HistoryMetric label="体重记录" value={`${weightLogs.length}`} />
         </div>
         <div className="mt-3 rounded-[28px] bg-white/55 p-4 text-sm leading-6 text-[color:var(--text-muted)]">
           数据保存在本机浏览器 localStorage。导出文件包含训练、体重、饮水、膳食和个人设置，请按隐私文件处理。
