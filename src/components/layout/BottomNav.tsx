@@ -25,7 +25,7 @@ export function BottomNav() {
             type="button"
             onClick={() => navigate(item.screen)}
           >
-            <Icon size={active ? 23 : 22} strokeWidth={active ? 2.5 : 2.15} />
+            <Icon size={active ? 27 : 26} strokeWidth={active ? 2.45 : 2.15} />
             <span>{item.label}</span>
           </button>
         );
