@@ -23,6 +23,10 @@ export type DrawerKind =
   | 'plan-delete'
   | 'plan-add'
   | 'meal-edit'
+  | 'meal-add'
+  | 'diet-preferences'
+  | 'data-management'
+  | 'training-history'
   | 'profile-edit'
   | 'training-detail'
   | 'workout-params'
@@ -121,13 +125,55 @@ export type Meal = {
   name: string;
   description: string;
   detail: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fatLossFriendliness?: 'high' | 'medium' | 'medium-low' | 'low';
   done?: boolean;
+  date?: string;
 };
 
 export type HydrationLog = {
   id: string;
   time: string;
   amountMl: number;
+  type?: 'drink' | 'correction';
+};
+
+export type WorkoutSetLog = {
+  id: string;
+  planId: string;
+  exerciseName: string;
+  sectionTitle?: string;
+  exerciseIndex: number;
+  set: number;
+  totalSets: number;
+  weight: number;
+  reps: number;
+  rpe: string;
+  restSeconds: number;
+  durationMs: number;
+  feedback: string;
+  completedAt: string;
+};
+
+export type WorkoutLog = {
+  id: string;
+  planId: string;
+  date: string;
+  startedAt: number;
+  finishedAt: number;
+  completionState: 'completed' | 'incomplete';
+  stoppedReason?: string;
+  lastFeedback?: string;
+  sets: WorkoutSetLog[];
+};
+
+export type WeightLog = {
+  id: string;
+  date: string;
+  weightKg: number;
 };
 
 export type Vitals = {
@@ -145,6 +191,15 @@ export type Profile = {
   targetWeightKg: number;
   trainingDays: number;
   sessionLimitMin: number;
+};
+
+export type DietPreferences = {
+  mealsPerDay: number;
+  budgetYuan: number;
+  proteinTargetG: number;
+  avoidEggs: boolean;
+  avoidSeafood: boolean;
+  avoidOrgans: boolean;
 };
 
 export type ReminderItem = {
@@ -178,7 +233,9 @@ export type WorkoutSession = {
   restStartedAt: number;
   pausedAt?: number;
   pausedAccumulatedMs: number;
+  setPausedAccumulatedMs: number;
   status: 'running' | 'paused' | 'finished';
+  completedSets: WorkoutSetLog[];
   lastFeedback?: string;
   completionState?: 'completed' | 'incomplete';
   suggestion?: string;
@@ -233,12 +290,16 @@ type AppState = {
   plans: TrainingPlan[];
   meals: Meal[];
   hydration: {
+    date: string;
     targetMl: number;
     currentMl: number;
     logs: HydrationLog[];
   };
+  workoutLogs: WorkoutLog[];
+  weightLogs: WeightLog[];
   vitals: Vitals;
   profile: Profile;
+  dietPreferences: DietPreferences;
   reminderRhythm: ReminderRhythm;
   workoutSession: WorkoutSession | null;
   navigate: (screen: Screen) => void;
@@ -251,10 +312,12 @@ type AppState = {
   upsertPlan: (plan: UpsertPlanInput) => void;
   duplicatePlan: (id: string) => void;
   deletePlan: (id: string) => void;
+  addMeal: (meal: Omit<Meal, 'id' | 'date' | 'done'>) => void;
   toggleMealDone: (id: string) => void;
   updateMeal: (id: string, patch: Partial<Meal>) => void;
   deleteMeal: (id: string) => void;
   updateProfile: (patch: Partial<Profile>) => void;
+  updateDietPreferences: (patch: Partial<DietPreferences>) => void;
   updateReminderRhythm: (patch: Partial<ReminderRhythm>) => void;
   resetData: () => void;
   startWorkout: (planId: string) => void;
@@ -296,24 +359,40 @@ const initialMeals: Meal[] = [
     name: '第一餐',
     description: '黄焖鸡去皮少油 + 米饭半份',
     detail: '优先鸡腿去皮，多青菜，少汤汁。',
+    calories: 620,
+    protein: 42,
+    carbs: 68,
+    fat: 18,
   },
   {
     id: 'meal-pre',
     name: '训练前补给',
     description: '无糖酸奶 / 牛奶 / 豆浆',
     detail: '训练前 60-90 分钟，控制在 250kcal 内。',
+    calories: 220,
+    protein: 16,
+    carbs: 22,
+    fat: 6,
   },
   {
     id: 'meal-2',
     name: '第二餐',
     description: '牛肉饭少油 + 青菜',
     detail: '主食半份到七分，避免油炸配菜。',
+    calories: 680,
+    protein: 45,
+    carbs: 72,
+    fat: 20,
   },
   {
     id: 'meal-night',
     name: '夜间备用',
     description: '蛋白粉待购买后启用',
     detail: '仅在蛋白不足且饥饿明显时使用。',
+    calories: 120,
+    protein: 24,
+    carbs: 3,
+    fat: 2,
   },
 ];
 
@@ -332,6 +411,15 @@ const initialProfile: Profile = {
   targetWeightKg: 65,
   trainingDays: 4,
   sessionLimitMin: 60,
+};
+
+const initialDietPreferences: DietPreferences = {
+  mealsPerDay: 2,
+  budgetYuan: 30,
+  proteinTargetG: 120,
+  avoidEggs: true,
+  avoidSeafood: true,
+  avoidOrgans: true,
 };
 
 const initialReminderRhythm: ReminderRhythm = {
@@ -357,10 +445,19 @@ const initialReminderRhythm: ReminderRhythm = {
 };
 
 const initialHydration = {
+  date: getTodayKey(),
   targetMl: 2500,
   currentMl: 0,
   logs: [],
 };
+
+const initialWeightLogs: WeightLog[] = [
+  {
+    id: 'weight-initial',
+    date: getTodayKey(),
+    weightKg: initialProfile.currentWeightKg,
+  },
+];
 
 function createWeekOneStrengthDays(): TrainingPlan[] {
   return [
@@ -828,6 +925,62 @@ function nextSequenceIndex(current: number) {
   return current >= 4 ? 1 : current + 1;
 }
 
+function getTodayKey(date = new Date()) {
+  return date.toLocaleDateString('en-CA');
+}
+
+function normalizeMealsForToday(meals: Meal[], today = getTodayKey()) {
+  return meals.map((meal) => (meal.date === today ? meal : { ...meal, done: false, date: today }));
+}
+
+function normalizeHydrationForToday(hydration: AppState['hydration'], today = getTodayKey()) {
+  if (hydration.date === today) return hydration;
+  return {
+    ...hydration,
+    date: today,
+    currentMl: 0,
+    logs: [],
+  };
+}
+
+function createSetLog(session: WorkoutSession, feedback: string, now = Date.now()): WorkoutSetLog {
+  return {
+    id: makeId('set'),
+    planId: session.planId,
+    exerciseName: session.exerciseName,
+    sectionTitle: session.sectionTitle,
+    exerciseIndex: session.currentExerciseIndex,
+    set: session.currentSet,
+    totalSets: session.totalSets,
+    weight: session.weight,
+    reps: session.reps,
+    rpe: session.rpe,
+    restSeconds: session.restSeconds,
+    durationMs: Math.max(0, now - session.setStartedAt - session.setPausedAccumulatedMs),
+    feedback,
+    completedAt: new Date(now).toISOString(),
+  };
+}
+
+function createWorkoutLog(
+  session: WorkoutSession,
+  completionState: 'completed' | 'incomplete',
+  feedback: string | undefined,
+  now = Date.now(),
+): WorkoutLog {
+  return {
+    id: makeId('workout'),
+    planId: session.planId,
+    date: getTodayKey(new Date(now)),
+    startedAt: session.sessionStartedAt,
+    finishedAt: now,
+    completionState,
+    stoppedReason: completionState === 'incomplete' ? feedback : undefined,
+    lastFeedback: feedback,
+    sets: session.completedSets,
+  };
+}
+
 const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.round(Math.random() * 1000)}`;
 
 export const useAppStore = create<AppState>()(
@@ -838,10 +991,13 @@ export const useAppStore = create<AppState>()(
       drawer: null,
       trainingProgram: initialTrainingProgram,
       plans: initialPlans,
-      meals: initialMeals,
+      meals: initialMeals.map((item) => ({ ...item, done: false, date: getTodayKey() })),
       hydration: initialHydration,
+      workoutLogs: [],
+      weightLogs: initialWeightLogs,
       vitals: initialVitals,
       profile: initialProfile,
+      dietPreferences: initialDietPreferences,
       reminderRhythm: initialReminderRhythm,
       workoutSession: null,
       navigate: (screen) =>
@@ -855,25 +1011,31 @@ export const useAppStore = create<AppState>()(
       closeDrawer: () => set({ drawer: null }),
       addWater: (amountMl) =>
         set((state) => {
-          const nextMl = clamp(state.hydration.currentMl + amountMl, 0, 6000);
-          const shouldLog = amountMl > 0;
+          const hydration = normalizeHydrationForToday(state.hydration);
+          const nextMl = clamp(hydration.currentMl + amountMl, 0, 6000);
+          const shouldLog = amountMl !== 0 && nextMl !== hydration.currentMl;
           return {
             hydration: {
-              ...state.hydration,
+              ...hydration,
               currentMl: nextMl,
               logs: shouldLog
                 ? [
-                    { id: makeId('water'), time: getTimeLabel(), amountMl },
-                    ...state.hydration.logs,
+                    {
+                      id: makeId('water'),
+                      time: getTimeLabel(),
+                      amountMl,
+                      type: amountMl > 0 ? ('drink' as const) : ('correction' as const),
+                    },
+                    ...hydration.logs,
                   ].slice(0, 8)
-                : state.hydration.logs,
+                : hydration.logs,
             },
           };
         }),
       setWaterTarget: (targetMl) =>
         set((state) => ({
           hydration: {
-            ...state.hydration,
+            ...normalizeHydrationForToday(state.hydration),
             targetMl: clamp(targetMl, 800, 5000),
           },
         })),
@@ -934,22 +1096,52 @@ export const useAppStore = create<AppState>()(
             days: state.trainingProgram.days.filter((item) => item.id !== id),
           },
         })),
+      addMeal: (meal) =>
+        set((state) => ({
+          meals: [
+            ...normalizeMealsForToday(state.meals),
+            {
+              ...meal,
+              id: makeId('meal'),
+              date: getTodayKey(),
+              done: false,
+            },
+          ],
+        })),
       toggleMealDone: (id) =>
         set((state) => ({
-          meals: state.meals.map((meal) => (meal.id === id ? { ...meal, done: !meal.done } : meal)),
+          meals: normalizeMealsForToday(state.meals).map((meal) => (meal.id === id ? { ...meal, done: !meal.done } : meal)),
         })),
       updateMeal: (id, patch) =>
         set((state) => ({
-          meals: state.meals.map((meal) => (meal.id === id ? { ...meal, ...patch } : meal)),
+          meals: normalizeMealsForToday(state.meals).map((meal) => (meal.id === id ? { ...meal, ...patch } : meal)),
         })),
       deleteMeal: (id) =>
         set((state) => ({
-          meals: state.meals.filter((meal) => meal.id !== id),
+          meals: normalizeMealsForToday(state.meals).filter((meal) => meal.id !== id),
         })),
       updateProfile: (patch) =>
-        set((state) => ({
-          profile: {
+        set((state) => {
+          const nextProfile = {
             ...state.profile,
+            ...patch,
+          };
+          const shouldLogWeight =
+            typeof patch.currentWeightKg === 'number' && patch.currentWeightKg !== state.profile.currentWeightKg;
+          return {
+            profile: nextProfile,
+            weightLogs: shouldLogWeight
+              ? [
+                  { id: makeId('weight'), date: getTodayKey(), weightKg: patch.currentWeightKg as number },
+                  ...state.weightLogs,
+                ].slice(0, 30)
+              : state.weightLogs,
+          };
+        }),
+      updateDietPreferences: (patch) =>
+        set((state) => ({
+          dietPreferences: {
+            ...state.dietPreferences,
             ...patch,
           },
         })),
@@ -973,14 +1165,18 @@ export const useAppStore = create<AppState>()(
               currentSequenceIndex: 1,
               days: initialTrainingProgram.days.map((item) => ({ ...item, completed: false })),
             },
-            meals: initialMeals.map((item) => ({ ...item, done: false })),
+            meals: initialMeals.map((item) => ({ ...item, done: false, date: getTodayKey() })),
             hydration: {
               ...initialHydration,
+              date: getTodayKey(),
               currentMl: 0,
               logs: [],
             },
+            workoutLogs: [],
+            weightLogs: [{ id: 'weight-initial', date: getTodayKey(), weightKg: initialProfile.currentWeightKg }],
             vitals: { ...initialVitals },
             profile: { ...initialProfile },
+            dietPreferences: { ...initialDietPreferences },
             reminderRhythm: {
               ...initialReminderRhythm,
               morning: { ...initialReminderRhythm.morning },
@@ -1025,21 +1221,43 @@ export const useAppStore = create<AppState>()(
             setStartedAt: now,
             restStartedAt: now,
             pausedAccumulatedMs: 0,
+            setPausedAccumulatedMs: 0,
             status: 'running',
+            completedSets: [],
           },
         });
       },
       updateWorkoutParams: (patch) =>
         set((state) => {
           if (!state.workoutSession) return {};
+          const nextWeight = patch.weight !== undefined ? clamp(patch.weight, 0, 300) : state.workoutSession.weight;
+          const nextReps = patch.reps !== undefined ? clamp(patch.reps, 1, 30) : state.workoutSession.reps;
+          const nextTotalSets =
+            patch.totalSets !== undefined ? clamp(patch.totalSets, 1, 12) : state.workoutSession.totalSets;
+          const nextRestSeconds =
+            patch.restSeconds !== undefined ? clamp(patch.restSeconds, 30, 360) : state.workoutSession.restSeconds;
+          const nextRpe = patch.rpe ?? state.workoutSession.rpe;
+          const exerciseQueue = state.workoutSession.exerciseQueue.map((exercise, index) =>
+            index === state.workoutSession?.currentExerciseIndex
+              ? {
+                  ...exercise,
+                  weight: nextWeight,
+                  reps: nextReps,
+                  sets: nextTotalSets,
+                  restSeconds: nextRestSeconds,
+                  targetRpe: nextRpe,
+                }
+              : exercise,
+          );
           return {
             workoutSession: {
               ...state.workoutSession,
-              ...patch,
-              weight: patch.weight ? clamp(patch.weight, 5, 300) : state.workoutSession.weight,
-              reps: patch.reps ? clamp(patch.reps, 1, 30) : state.workoutSession.reps,
-              totalSets: patch.totalSets ? clamp(patch.totalSets, 1, 12) : state.workoutSession.totalSets,
-              restSeconds: patch.restSeconds ? clamp(patch.restSeconds, 30, 360) : state.workoutSession.restSeconds,
+              exerciseQueue,
+              weight: nextWeight,
+              reps: nextReps,
+              totalSets: nextTotalSets,
+              restSeconds: nextRestSeconds,
+              rpe: nextRpe,
             },
           };
         }),
@@ -1059,12 +1277,13 @@ export const useAppStore = create<AppState>()(
           if (!state.workoutSession || state.workoutSession.status !== 'paused' || !state.workoutSession.pausedAt) {
             return {};
           }
+          const pausedDuration = Date.now() - state.workoutSession.pausedAt;
           return {
             workoutSession: {
               ...state.workoutSession,
               status: 'running',
-              pausedAccumulatedMs:
-                state.workoutSession.pausedAccumulatedMs + Date.now() - state.workoutSession.pausedAt,
+              pausedAccumulatedMs: state.workoutSession.pausedAccumulatedMs + pausedDuration,
+              setPausedAccumulatedMs: state.workoutSession.setPausedAccumulatedMs + pausedDuration,
               pausedAt: undefined,
             },
           };
@@ -1074,16 +1293,24 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           if (!state.workoutSession) return { screen: 'training' };
           const session = state.workoutSession;
+          const now = Date.now();
+          const nextSetLog = createSetLog(session, feedback, now);
+          const sessionWithLog = {
+            ...session,
+            completedSets: [...session.completedSets, nextSetLog],
+            lastFeedback: feedback,
+          };
           if (feedback === '未完成' || feedback === '有疼痛') {
+            const completionState = 'incomplete' as const;
             return {
               screen: 'finish',
               workoutSession: {
-                ...session,
-                lastFeedback: feedback,
+                ...sessionWithLog,
                 status: 'finished',
-                completionState: feedback === '有疼痛' ? 'completed' : 'incomplete',
-                suggestion: getSuggestion(feedback, feedback === '有疼痛' ? 'completed' : 'incomplete'),
+                completionState,
+                suggestion: getSuggestion(feedback, completionState),
               },
+              workoutLogs: [createWorkoutLog(sessionWithLog, completionState, feedback, now), ...state.workoutLogs].slice(0, 60),
             };
           }
           const isLastSet = session.currentSet >= session.totalSets;
@@ -1096,13 +1323,13 @@ export const useAppStore = create<AppState>()(
             return {
               screen: 'finish',
               workoutSession: {
-                ...session,
-                lastFeedback: feedback,
+                ...sessionWithLog,
                 status: 'finished',
                 completionState: 'completed',
                 suggestion: getSuggestion(feedback, 'completed'),
               },
               plans,
+              workoutLogs: [createWorkoutLog(sessionWithLog, 'completed', feedback, now), ...state.workoutLogs].slice(0, 60),
               trainingProgram: {
                 ...state.trainingProgram,
                 currentSequenceIndex: nextIndex,
@@ -1115,9 +1342,8 @@ export const useAppStore = create<AppState>()(
           return {
             screen: 'rest',
             workoutSession: {
-              ...session,
-              lastFeedback: feedback,
-              restStartedAt: Date.now(),
+              ...sessionWithLog,
+              restStartedAt: now,
             },
           };
         }),
@@ -1145,56 +1371,71 @@ export const useAppStore = create<AppState>()(
               rpe: exercise.targetRpe,
               restSeconds: exercise.restSeconds,
               setStartedAt: Date.now(),
+              setPausedAccumulatedMs: 0,
               status: 'running',
             },
           };
         }),
       finishWorkout: () =>
-        set((state) => ({
-          screen: 'finish',
-          workoutSession: state.workoutSession
-            ? {
-                ...state.workoutSession,
-                status: 'finished',
-                completionState: 'incomplete',
-                suggestion: getSuggestion(state.workoutSession.lastFeedback, 'incomplete'),
-              }
-            : null,
-          drawer: null,
-        })),
+        set((state) => {
+          if (!state.workoutSession) {
+            return { screen: 'finish', workoutSession: null, drawer: null };
+          }
+          const now = Date.now();
+          const session = {
+            ...state.workoutSession,
+            status: 'finished' as const,
+            completionState: 'incomplete' as const,
+            suggestion: getSuggestion(state.workoutSession.lastFeedback, 'incomplete'),
+          };
+          return {
+            screen: 'finish',
+            workoutSession: session,
+            workoutLogs: [createWorkoutLog(session, 'incomplete', session.lastFeedback, now), ...state.workoutLogs].slice(0, 60),
+            drawer: null,
+          };
+        }),
     }),
     {
       name: 'private-fitness-coach-pwa',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState) => {
         const persisted = persistedState as Partial<AppState>;
         const hasStructuredPlans = Boolean(persisted.plans?.[0]?.sections?.length);
-        const cleanPlans = (hasStructuredPlans ? persisted.plans : initialPlans)?.map((item) => ({
-          ...item,
-          completed: false,
-        })) ?? initialPlans;
+        const cleanPlans = (hasStructuredPlans ? persisted.plans : initialPlans) ?? initialPlans;
         const cleanProgramDays = (
           hasStructuredPlans && persisted.trainingProgram?.days?.length
             ? persisted.trainingProgram.days
             : initialTrainingProgram.days
-        ).map((item) => ({ ...item, completed: false }));
+        );
+        const hydration = normalizeHydrationForToday({
+          ...initialHydration,
+          ...(persisted.hydration ?? {}),
+        });
+        const profile = persisted.profile ?? initialProfile;
         return {
           ...persisted,
           screen: 'cultivation',
           previousScreen: 'cultivation',
           drawer: null,
           plans: cleanPlans,
+          meals: normalizeMealsForToday(persisted.meals ?? initialMeals),
           trainingProgram: {
             ...(persisted.trainingProgram ?? initialTrainingProgram),
-            currentSequenceIndex: 1,
             days: cleanProgramDays,
           },
-          hydration: {
-            ...(persisted.hydration ?? initialHydration),
-            currentMl: 0,
-            logs: [],
-          },
+          hydration,
+          profile,
+          dietPreferences: persisted.dietPreferences ?? initialDietPreferences,
+          workoutLogs: persisted.workoutLogs ?? [],
+          weightLogs: persisted.weightLogs ?? [
+            {
+              id: 'weight-initial',
+              date: getTodayKey(),
+              weightKg: profile.currentWeightKg,
+            },
+          ],
           workoutSession: null,
         };
       },
@@ -1205,8 +1446,11 @@ export const useAppStore = create<AppState>()(
         plans: state.plans,
         meals: state.meals,
         hydration: state.hydration,
+        workoutLogs: state.workoutLogs,
+        weightLogs: state.weightLogs,
         vitals: state.vitals,
         profile: state.profile,
+        dietPreferences: state.dietPreferences,
         reminderRhythm: state.reminderRhythm,
         workoutSession: state.workoutSession,
       }),

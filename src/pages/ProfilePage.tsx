@@ -1,9 +1,9 @@
-import { Bell, Database, Download, Droplets, Settings2, Shield, Trash2, Utensils } from 'lucide-react';
+import { Bell, Database, Droplets, Scale, Settings2, Shield, Utensils } from 'lucide-react';
 import { GlassPanel } from '../components/ui/GlassPanel';
-import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { useAppStore } from '../store/appStore';
 
 const settingGroups = [
+  { title: '身体数据', icon: Scale },
   { title: '训练偏好', icon: Settings2 },
   { title: '膳食偏好', icon: Utensils },
   { title: '喝水目标', icon: Droplets },
@@ -14,19 +14,9 @@ const settingGroups = [
 export function ProfilePage() {
   const profile = useAppStore((state) => state.profile);
   const hydration = useAppStore((state) => state.hydration);
+  const dietPreferences = useAppStore((state) => state.dietPreferences);
   const reminderRhythm = useAppStore((state) => state.reminderRhythm);
   const openDrawer = useAppStore((state) => state.openDrawer);
-
-  const exportData = () => {
-    const raw = localStorage.getItem('private-fitness-coach-pwa') ?? '{}';
-    const blob = new Blob([raw], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'private-fitness-coach-data.json';
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <section className="page">
@@ -71,8 +61,12 @@ export function ProfilePage() {
                   openDrawer({ kind: 'water-target', payload: { targetMl: hydration.targetMl } });
                   return;
                 }
+                if (group.title === '膳食偏好') {
+                  openDrawer({ kind: 'diet-preferences' });
+                  return;
+                }
                 if (group.title === '数据管理') {
-                  openDrawer({ kind: 'data-reset' });
+                  openDrawer({ kind: 'data-management' });
                   return;
                 }
                 openDrawer({ kind: 'profile-edit', payload: { group: group.title } });
@@ -87,6 +81,10 @@ export function ProfilePage() {
               <span className="text-xs text-[color:var(--text-muted)]">
                 {group.title === '喝水目标'
                   ? `${(hydration.targetMl / 1000).toFixed(1)}L`
+                  : group.title === '膳食偏好'
+                    ? `${dietPreferences.mealsPerDay}餐 / ${dietPreferences.budgetYuan}元`
+                  : group.title === '身体数据'
+                    ? `${profile.currentWeightKg}kg`
                   : group.title === '提醒节律'
                     ? reminderRhythm.dailyEnabled
                       ? '已开启'
@@ -96,17 +94,6 @@ export function ProfilePage() {
             </button>
           );
         })}
-      </div>
-
-      <div className="mt-auto grid grid-cols-2 gap-3">
-        <PrimaryButton variant="secondary" onClick={exportData} className="flex items-center justify-center gap-2 !px-2">
-          <Download size={16} />
-          导出数据
-        </PrimaryButton>
-        <PrimaryButton variant="secondary" onClick={() => openDrawer({ kind: 'data-reset' })} className="flex items-center justify-center gap-2 !px-2">
-          <Trash2 size={16} />
-          重置数据
-        </PrimaryButton>
       </div>
     </section>
   );

@@ -5,7 +5,7 @@ import { TrainingLightArc } from '../components/training/TrainingLightArc';
 import { ActionMenu } from '../components/ui/ActionMenu';
 import { GlassPanel } from '../components/ui/GlassPanel';
 import { useAppStore } from '../store/appStore';
-import { formatClock, formatDuration, remainingMs, sessionElapsedMs } from '../utils/time';
+import { formatClock, formatDuration, sessionElapsedMs } from '../utils/time';
 import { useNow } from '../utils/useNow';
 
 export function WorkoutPage() {
@@ -29,8 +29,8 @@ export function WorkoutPage() {
   const totalElapsed = formatDuration(
     sessionElapsedMs(workout.sessionStartedAt, workout.pausedAccumulatedMs, workout.pausedAt, now),
   );
-  const setElapsed = workout.status === 'paused' ? '00:00' : formatClock(now - workout.setStartedAt);
-  const restLeft = formatClock(remainingMs(workout.restStartedAt, workout.restSeconds, now));
+  const setElapsed =
+    workout.status === 'paused' ? '00:00' : formatClock(now - workout.setStartedAt - workout.setPausedAccumulatedMs);
 
   return (
     <section className="page page-immersive">
@@ -126,7 +126,7 @@ export function WorkoutPage() {
       </div>
 
       <div className="relative z-10 workout-metrics">
-        <TrainingMetric label="组间休息" value={restLeft} />
+        <TrainingMetric label="建议休息" value={`${workout.restSeconds}s`} />
         <TrainingMetric label="总时长" value={totalElapsed} />
         <TrainingMetric label="本组" value={setElapsed} />
       </div>

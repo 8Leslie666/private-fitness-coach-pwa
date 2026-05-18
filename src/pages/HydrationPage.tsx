@@ -92,14 +92,23 @@ export function HydrationPage() {
           <div className="text-sm font-semibold">今日饮水记录</div>
           <div className="text-xs text-[color:var(--text-muted)]">时间线</div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {hydration.logs.slice(0, 3).map((log) => (
-            <div key={log.id} className="rounded-2xl bg-white/50 px-3 py-3 text-center">
-              <div className="text-xs text-[color:var(--text-muted)]">{log.time}</div>
-              <div className="mt-1 text-sm font-semibold">{log.amountMl}ml</div>
-            </div>
-          ))}
-        </div>
+        {hydration.logs.length ? (
+          <div className="grid grid-cols-3 gap-2">
+            {hydration.logs.slice(0, 6).map((log) => (
+              <div key={log.id} className="rounded-2xl bg-white/50 px-3 py-3 text-center">
+                <div className="text-xs text-[color:var(--text-muted)]">{log.time}</div>
+                <div className={`mt-1 text-sm font-semibold ${log.amountMl < 0 ? 'text-amber-700' : ''}`}>
+                  {log.amountMl > 0 ? '+' : ''}
+                  {log.amountMl}ml
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl bg-white/50 p-4 text-sm text-[color:var(--text-muted)]">
+            今日还没有饮水记录，先用上方快捷按钮添加一杯水。
+          </div>
+        )}
       </GlassPanel>
     </section>
   );

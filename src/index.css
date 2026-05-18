@@ -77,7 +77,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px 98px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px calc(98px + env(safe-area-inset-bottom, 0px));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -91,12 +91,12 @@ button {
 }
 
 .page-secondary {
-  padding-bottom: 90px;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
 }
 
 .page-immersive {
   color: white;
-  padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px 20px;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(20px + env(safe-area-inset-bottom, 0px));
   overflow: hidden;
   background:
     radial-gradient(circle at 52% 8%, rgba(198,210,226,0.22), transparent 32%),
@@ -226,7 +226,7 @@ button {
   position: absolute;
   left: 18px;
   right: 18px;
-  bottom: 10px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
   height: 76px;
   border-radius: 38px;
   display: grid;
@@ -311,7 +311,7 @@ button {
   left: 8px;
   right: 8px;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
-  height: min(78vh, 720px);
+  height: min(78dvh, 720px);
   z-index: 70;
   border-radius: 34px 34px 30px 30px;
   display: flex;
@@ -406,17 +406,17 @@ button {
 
 .number-stepper {
   display: grid;
-  grid-template-columns: 32px minmax(58px, auto) 32px;
+  grid-template-columns: 44px minmax(58px, auto) 44px;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .number-stepper button,
 .mini-round {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   color: var(--text-main);
   background: rgba(255,255,255,0.66);

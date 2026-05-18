@@ -107,7 +107,11 @@ export function TrainingPlanPage() {
       <div className="min-h-0 flex-1">
         <div className="mb-2 flex items-center justify-between px-1">
           <div className="text-sm font-semibold">本周计划</div>
-          <button className="text-xs font-semibold text-[color:var(--blue-main)]" type="button">
+          <button
+            className="text-xs font-semibold text-[color:var(--blue-main)]"
+            type="button"
+            onClick={() => openDrawer({ kind: 'training-history' })}
+          >
             训练历史
           </button>
         </div>

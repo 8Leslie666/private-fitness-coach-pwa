@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useState, type PropsWithChildren, type ReactNode } from 'react';
-import { Bell, Clock, Dumbbell, Minus, Moon, Plus, ScrollText } from 'lucide-react';
+import { Bell, Clock, Download, Dumbbell, Minus, Moon, Plus, ScrollText, Trash2, Utensils } from 'lucide-react';
 import {
   useAppStore,
   getPlanSections,
   type Meal,
+  type DietPreferences,
   type Profile,
   type ReminderRhythm,
   type TrainingPlan,
   type UpsertPlanInput,
   type Vitals,
+  type WorkoutLog,
   type WorkoutSession,
 } from '../../store/appStore';
+import { formatDuration } from '../../utils/time';
 import { AppDrawer } from '../ui/AppDrawer';
 import { BottomNav } from './BottomNav';
 import { PrimaryButton } from '../ui/PrimaryButton';
@@ -79,15 +82,19 @@ function DrawerRenderer({ onClose }: { onClose: () => void }) {
   const meals = useAppStore((state) => state.meals);
   const vitals = useAppStore((state) => state.vitals);
   const profile = useAppStore((state) => state.profile);
+  const dietPreferences = useAppStore((state) => state.dietPreferences);
   const reminderRhythm = useAppStore((state) => state.reminderRhythm);
   const workout = useAppStore((state) => state.workoutSession);
+  const workoutLogs = useAppStore((state) => state.workoutLogs);
   const addWater = useAppStore((state) => state.addWater);
   const setWaterTarget = useAppStore((state) => state.setWaterTarget);
   const updateVitals = useAppStore((state) => state.updateVitals);
   const upsertPlan = useAppStore((state) => state.upsertPlan);
   const deletePlan = useAppStore((state) => state.deletePlan);
+  const addMeal = useAppStore((state) => state.addMeal);
   const updateMeal = useAppStore((state) => state.updateMeal);
   const updateProfile = useAppStore((state) => state.updateProfile);
+  const updateDietPreferences = useAppStore((state) => state.updateDietPreferences);
   const updateReminderRhythm = useAppStore((state) => state.updateReminderRhythm);
   const updateWorkoutParams = useAppStore((state) => state.updateWorkoutParams);
   const resetData = useAppStore((state) => state.resetData);
@@ -167,6 +174,7 @@ function DrawerRenderer({ onClose }: { onClose: () => void }) {
     return (
       <MealDrawer
         meal={meal}
+        preferences={dietPreferences}
         onClose={onClose}
         onSave={(id, patch) => {
           updateMeal(id, patch);
@@ -176,9 +184,43 @@ function DrawerRenderer({ onClose }: { onClose: () => void }) {
     );
   }
 
+  if (drawer.kind === 'meal-add') {
+    return (
+      <MealDrawer
+        preferences={dietPreferences}
+        onClose={onClose}
+        onCreate={(value) => {
+          addMeal(value);
+          onClose();
+        }}
+      />
+    );
+  }
+
   if (drawer.kind === 'training-detail') {
     const plan = plans.find((item) => item.id === drawer.payload?.id);
     return <TrainingDetailDrawer plan={plan} onClose={onClose} />;
+  }
+
+  if (drawer.kind === 'training-history') {
+    return <TrainingHistoryDrawer logs={workoutLogs} plans={plans} onClose={onClose} />;
+  }
+
+  if (drawer.kind === 'diet-preferences') {
+    return (
+      <DietPreferencesDrawer
+        preferences={dietPreferences}
+        onClose={onClose}
+        onSave={(patch) => {
+          updateDietPreferences(patch);
+          onClose();
+        }}
+      />
+    );
+  }
+
+  if (drawer.kind === 'data-management') {
+    return <DataManagementDrawer workoutLogs={workoutLogs} meals={meals} onClose={onClose} onReset={resetData} />;
   }
 
   if (drawer.kind === 'profile-edit') {
@@ -390,20 +432,53 @@ function PlanDrawer({
 
 function MealDrawer({
   meal,
+  preferences,
   onClose,
   onSave,
+  onCreate,
 }: {
   meal?: Meal;
+  preferences: DietPreferences;
   onClose: () => void;
-  onSave: (id: string, patch: Partial<Meal>) => void;
+  onSave?: (id: string, patch: Partial<Meal>) => void;
+  onCreate?: (meal: Omit<Meal, 'id' | 'date' | 'done'>) => void;
 }) {
+  const [name, setName] = useState(meal?.name ?? '自定义餐食');
   const [description, setDescription] = useState(meal?.description ?? '');
   const [detail, setDetail] = useState(meal?.detail ?? '');
+  const forbiddenText = `${description} ${detail}`;
+  const forbiddenKeywords = [
+    preferences.avoidEggs ? '鸡蛋' : '',
+    preferences.avoidSeafood ? '海鲜' : '',
+    preferences.avoidOrgans ? '内脏' : '',
+  ].filter(Boolean);
+  const hasForbidden = forbiddenKeywords.some((keyword) => forbiddenText.includes(keyword));
+  const isMcdonalds = /麦当劳|麦辣|M记|McDonald/i.test(forbiddenText);
+  const saveMeal = () => {
+    if (hasForbidden && !window.confirm('餐食包含不推荐食材，仍要保存吗？')) return;
+    const patch = {
+      name,
+      description,
+      detail,
+      fatLossFriendliness: isMcdonalds ? 'medium-low' as const : meal?.fatLossFriendliness,
+    };
+    if (meal && onSave) {
+      onSave(meal.id, patch);
+      return;
+    }
+    onCreate?.(patch);
+  };
   return (
-    <AppDrawer title={meal?.name ?? '餐次'} subtitle="规则：不推荐鸡蛋、海鲜、内脏" onClose={onClose}>
+    <AppDrawer title={meal ? meal.name : '新增餐食'} subtitle={`规则：不推荐${forbiddenKeywords.join('、') || '高油高糖'}`} onClose={onClose}>
       <div className="drawer-body">
         <div className="grid gap-3">
+          <TextField label="餐次名称" value={name} onChange={setName} />
           <TextField label="餐食" value={description} onChange={setDescription} />
+          {hasForbidden ? (
+            <div className="rounded-2xl bg-amber-100/70 px-3 py-2 text-xs font-semibold text-amber-800">
+              包含不推荐食材，建议换成瘦牛肉、鸡腿去皮、豆制品或低脂奶。
+            </div>
+          ) : null}
           <label className="liquid-field">
             <span className="text-xs text-[color:var(--text-muted)]">备注</span>
             <textarea
@@ -418,7 +493,7 @@ function MealDrawer({
         <PrimaryButton variant="secondary" onClick={onClose}>
           取消
         </PrimaryButton>
-        <PrimaryButton onClick={() => meal && onSave(meal.id, { description, detail })}>保存</PrimaryButton>
+        <PrimaryButton onClick={saveMeal}>保存</PrimaryButton>
       </div>
     </AppDrawer>
   );
@@ -488,6 +563,215 @@ function TrainingDetailDrawer({ plan, onClose }: { plan?: TrainingPlan; onClose:
       </div>
       <div className="drawer-actions !grid-cols-1">
         <PrimaryButton onClick={onClose}>完成查看</PrimaryButton>
+      </div>
+    </AppDrawer>
+  );
+}
+
+function TrainingHistoryDrawer({
+  logs,
+  plans,
+  onClose,
+}: {
+  logs: WorkoutLog[];
+  plans: TrainingPlan[];
+  onClose: () => void;
+}) {
+  return (
+    <AppDrawer title="训练历史" subtitle={`${logs.length} 次本地记录`} onClose={onClose}>
+      <div className="drawer-body">
+        {logs.length ? (
+          <div className="grid gap-3">
+            {logs.map((log) => {
+              const plan = plans.find((item) => item.id === log.planId);
+              const totalVolume = log.sets.reduce((sum, item) => sum + item.weight * item.reps, 0);
+              return (
+                <div key={log.id} className="rounded-[28px] bg-white/55 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-xs text-[color:var(--text-muted)]">{log.date}</div>
+                      <div className="mt-1 truncate text-base font-semibold">{plan?.title ?? '自由训练'}</div>
+                    </div>
+                    <div className={`rounded-full px-3 py-1 text-xs font-semibold ${log.completionState === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}`}>
+                      {log.completionState === 'completed' ? '已完成' : '未完成'}
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                    <HistoryMetric label="组数" value={`${log.sets.length}`} />
+                    <HistoryMetric label="容量" value={`${Math.round(totalVolume)}kg`} />
+                    <HistoryMetric label="用时" value={formatDuration(log.finishedAt - log.startedAt)} />
+                  </div>
+                  {log.lastFeedback ? (
+                    <div className="mt-3 rounded-2xl bg-white/50 px-3 py-2 text-xs text-[color:var(--text-muted)]">
+                      最近反馈：{log.lastFeedback}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[28px] bg-white/55 p-5 text-sm leading-6 text-[color:var(--text-muted)]">
+            还没有训练历史。完成一组并提交反馈后，这里会记录训练日期、组数、容量、用时和反馈。
+          </div>
+        )}
+      </div>
+      <div className="drawer-actions !grid-cols-1">
+        <PrimaryButton onClick={onClose}>知道了</PrimaryButton>
+      </div>
+    </AppDrawer>
+  );
+}
+
+function HistoryMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-white/50 p-3">
+      <div className="text-[color:var(--text-muted)]">{label}</div>
+      <div className="mt-1 font-semibold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function DietPreferencesDrawer({
+  preferences,
+  onClose,
+  onSave,
+}: {
+  preferences: DietPreferences;
+  onClose: () => void;
+  onSave: (patch: Partial<DietPreferences>) => void;
+}) {
+  const [draft, setDraft] = useState(preferences);
+  return (
+    <AppDrawer title="膳食偏好" subtitle="用于餐食建议和规则提醒" onClose={onClose}>
+      <div className="drawer-body">
+        <div className="rounded-[30px] bg-white/55 px-4">
+          <NumberRow label="每日餐次" value={draft.mealsPerDay} unit="餐" step={1} onChange={(mealsPerDay) => setDraft({ ...draft, mealsPerDay })} />
+          <NumberRow label="单日预算" value={draft.budgetYuan} unit="元" step={5} onChange={(budgetYuan) => setDraft({ ...draft, budgetYuan })} />
+          <NumberRow label="蛋白目标" value={draft.proteinTargetG} unit="g" step={5} onChange={(proteinTargetG) => setDraft({ ...draft, proteinTargetG })} />
+        </div>
+        <div className="mt-3 grid gap-3">
+          <PreferenceToggle
+            icon={<Utensils size={18} />}
+            title="不推荐鸡蛋"
+            checked={draft.avoidEggs}
+            onChange={(avoidEggs) => setDraft({ ...draft, avoidEggs })}
+          />
+          <PreferenceToggle
+            icon={<Utensils size={18} />}
+            title="不推荐海鲜"
+            checked={draft.avoidSeafood}
+            onChange={(avoidSeafood) => setDraft({ ...draft, avoidSeafood })}
+          />
+          <PreferenceToggle
+            icon={<Utensils size={18} />}
+            title="不推荐内脏"
+            checked={draft.avoidOrgans}
+            onChange={(avoidOrgans) => setDraft({ ...draft, avoidOrgans })}
+          />
+        </div>
+      </div>
+      <div className="drawer-actions">
+        <PrimaryButton variant="secondary" onClick={onClose}>
+          取消
+        </PrimaryButton>
+        <PrimaryButton onClick={() => onSave(draft)}>保存偏好</PrimaryButton>
+      </div>
+    </AppDrawer>
+  );
+}
+
+function PreferenceToggle({
+  icon,
+  title,
+  checked,
+  onChange,
+}: {
+  icon: ReactNode;
+  title: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="rounded-[28px] bg-white/55 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-white/60 text-[color:var(--blue-main)]">{icon}</span>
+          <span className="text-sm font-semibold">{title}</span>
+        </div>
+        <Toggle checked={checked} onChange={onChange} />
+      </div>
+    </div>
+  );
+}
+
+function DataManagementDrawer({
+  workoutLogs,
+  meals,
+  onClose,
+  onReset,
+}: {
+  workoutLogs: WorkoutLog[];
+  meals: Meal[];
+  onClose: () => void;
+  onReset: () => void;
+}) {
+  const exportData = () => {
+    const raw = localStorage.getItem('private-fitness-coach-pwa') ?? '{}';
+    let parsed: Record<string, unknown> = {};
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = { unreadableRaw: raw };
+    }
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), ...parsed }, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `private-fitness-coach-data-${new Date().toLocaleDateString('en-CA')}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <AppDrawer title="数据管理" subtitle="本地保存、导出和重置" onClose={onClose}>
+      <div className="drawer-body">
+        <div className="grid grid-cols-2 gap-3">
+          <HistoryMetric label="训练记录" value={`${workoutLogs.length}`} />
+          <HistoryMetric label="餐食模板" value={`${meals.length}`} />
+        </div>
+        <div className="mt-3 rounded-[28px] bg-white/55 p-4 text-sm leading-6 text-[color:var(--text-muted)]">
+          数据保存在本机浏览器 localStorage。导出文件包含训练、体重、饮水、膳食和个人设置，请按隐私文件处理。
+        </div>
+        <div className="mt-3 grid gap-3">
+          <button className="glass-panel pressable flex h-14 items-center justify-between rounded-[24px] px-4 text-left" type="button" onClick={exportData}>
+            <span className="flex items-center gap-3 text-sm font-semibold">
+              <Download size={18} className="text-[color:var(--blue-main)]" />
+              导出完整数据
+            </span>
+            <span className="text-xs text-[color:var(--text-muted)]">JSON</span>
+          </button>
+          <button
+            className="glass-panel pressable flex h-14 items-center justify-between rounded-[24px] px-4 text-left"
+            type="button"
+            onClick={() => {
+              if (!window.confirm('确认重置本地数据？训练记录、膳食勾选、饮水记录和个人设置都会恢复默认。')) return;
+              onReset();
+              onClose();
+            }}
+          >
+            <span className="flex items-center gap-3 text-sm font-semibold text-rose-700">
+              <Trash2 size={18} />
+              重置本地数据
+            </span>
+            <span className="text-xs text-rose-700">危险操作</span>
+          </button>
+        </div>
+      </div>
+      <div className="drawer-actions !grid-cols-1">
+        <PrimaryButton onClick={onClose}>完成</PrimaryButton>
       </div>
     </AppDrawer>
   );
@@ -718,7 +1002,7 @@ function WorkoutParamsDrawer({
     rpe: workout?.rpe ?? '6-7',
   });
   return (
-    <AppDrawer title="调整本组参数" subtitle="修改后立即影响当前训练驾驶舱" onClose={onClose}>
+    <AppDrawer title="调整训练参数" subtitle="修改后应用到当前动作的后续组" onClose={onClose}>
       <div className="drawer-body">
         <div className="rounded-[30px] bg-white/55 px-4">
           <NumberRow label="重量" value={draft.weight} unit="kg" step={2.5} onChange={(weight) => setDraft({ ...draft, weight })} />
