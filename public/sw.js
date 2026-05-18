@@ -1,4 +1,4 @@
-const CACHE_NAME = 'private-fitness-coach-v2';
+const CACHE_NAME = 'private-fitness-coach-v3';
 const BASE_URL = new URL(self.registration.scope).pathname;
 const fromBase = (path) => `${BASE_URL}${path}`.replace(/\/{2,}/g, '/');
 const ASSETS = [
@@ -26,6 +26,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(fromBase('index.html'), copy));
+          return response;
+        })
+        .catch(() => caches.match(fromBase('index.html'))),
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
